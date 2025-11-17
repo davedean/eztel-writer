@@ -44,6 +44,9 @@ pip install -r requirements.txt -r requirements-dev.txt
 
 # Run tests
 pytest -v
+
+# Run example app (uses mock telemetry on macOS)
+python example_app.py
 ```
 
 ## Project Structure
