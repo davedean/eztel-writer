@@ -4,16 +4,21 @@ A background telemetry logger for Le Mans Ultimate that automatically captures a
 
 ## Project Status
 
-🚧 **In Development** - Phase 1 Complete (Mock Telemetry System)
+🚧 **In Development** - Phases 1-4 Complete (Core System Implemented)
 
 ### Completed
 - ✅ Project structure setup
 - ✅ Mock telemetry system for macOS development
 - ✅ Platform detection (macOS/Windows)
-- ✅ 7/7 unit tests passing
+- ✅ Process monitoring with auto-detection
+- ✅ Session management and lap tracking
+- ✅ Telemetry polling loop (~100Hz)
+- ✅ CSV formatter matching reference format
+- ✅ File management for saving lap data
+- ✅ 61/61 unit tests passing
 
 ### In Progress
-- 🔄 Phase 2: Core logger with auto-detection
+- 🔄 Phase 5: Integration testing and example app
 
 ## Features (Planned)
 
@@ -47,12 +52,21 @@ pytest -v
 telemetry_writer/
 ├── src/
 │   ├── telemetry/
-│   │   ├── telemetry_interface.py   # Abstract interface
+│   │   ├── telemetry_interface.py   # Abstract interface ✅
 │   │   ├── telemetry_mock.py        # macOS: mock data ✅
 │   │   └── telemetry_real.py        # Windows: real data (TODO)
-│   └── (more modules coming)
+│   ├── process_monitor.py           # Process auto-detection ✅
+│   ├── session_manager.py           # Session & lap tracking ✅
+│   ├── telemetry_loop.py            # Main polling loop ✅
+│   ├── csv_formatter.py             # CSV formatting ✅
+│   └── file_manager.py              # File operations ✅
 ├── tests/
-│   └── test_telemetry_mock.py       # 7/7 passing ✅
+│   ├── test_telemetry_mock.py       # 7 tests ✅
+│   ├── test_process_monitor.py      # 5 tests ✅
+│   ├── test_session_manager.py      # 7 tests ✅
+│   ├── test_telemetry_loop.py       # 13 tests ✅
+│   ├── test_csv_formatter.py        # 13 tests ✅
+│   └── test_file_manager.py         # 16 tests ✅
 ├── requirements.txt
 └── example.csv                       # Reference output format
 ```
