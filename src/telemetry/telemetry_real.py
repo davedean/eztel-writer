@@ -15,22 +15,32 @@ class RealTelemetryReader(TelemetryReaderInterface):
 
     def __init__(self):
         try:
-            # Import the shared memory library
-            import sys
-            import os
-            # Add the pyRfactor2SharedMemory directory to path
-            sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'pyRfactor2SharedMemory'))
-            from sharedMemoryAPI import SimInfoAPI, Cbytestring2Python
-
-            self.SimInfoAPI = SimInfoAPI
-            self.Cbytestring2Python = Cbytestring2Python
-            self.info = SimInfoAPI()
-
-        except ImportError as e:
-            raise ImportError(
-                f"pyRfactor2SharedMemory not found: {e}. "
-                "This module only works on Windows with the library installed."
+            # Import the shared memory library either from the installed package
+            # or the vendored copy (older instructions referenced a local folder).
+            from pyRfactor2SharedMemory.sharedMemoryAPI import (
+                SimInfoAPI,
+                Cbytestring2Python,
             )
+        except ImportError:
+            import os
+            import sys
+
+            local_path = os.path.join(
+                os.path.dirname(__file__), "..", "pyRfactor2SharedMemory"
+            )
+            sys.path.insert(0, local_path)
+            try:
+                from sharedMemoryAPI import SimInfoAPI, Cbytestring2Python
+            except ImportError as e:  # pragma: no cover - Windows-only dependency
+                raise ImportError(
+                    f"pyRfactor2SharedMemory not found: {e}. "
+                    "Install the package (pip install pyRfactor2SharedMemory) "
+                    "or add the vendored folder to src/pyRfactor2SharedMemory."
+                ) from e
+
+        self.SimInfoAPI = SimInfoAPI
+        self.Cbytestring2Python = Cbytestring2Python
+        self.info = SimInfoAPI()
 
     def is_available(self) -> bool:
         """Check if shared memory is accessible"""
