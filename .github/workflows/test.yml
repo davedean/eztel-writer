@@ -38,7 +38,7 @@ jobs:
         pytest -v --cov=src --cov-report=term-missing
 
     - name: Upload coverage to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
       uses: codecov/codecov-action@v4
       with:
         fail_ci_if_error: false
