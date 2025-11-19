@@ -92,7 +92,7 @@ class SessionManager:
             telemetry = {**telemetry, 'track_length': self.track_length}
 
         normalized = self.normalizer.normalize(telemetry)
-        self._assign_lap_time(normalized, timestamp)
+        self._assign_lap_time(normalized, telemetry, timestamp)
         if not self._is_duplicate_sample(normalized):
             self.lap_samples.append(normalized)
 
@@ -208,14 +208,15 @@ class SessionManager:
         return normalized == last
 
     def _assign_lap_time(
-        self, normalized: Dict[str, Any], timestamp: Optional[float]
+        self, normalized: Dict[str, Any], raw_telemetry: Dict[str, Any], timestamp: Optional[float]
     ) -> None:
         """Ensure LapTime is present and monotonic using timestamps when available."""
 
         if timestamp is not None and self.lap_start_timestamp is None:
             self.lap_start_timestamp = timestamp
 
-        reported_time = normalized.get('LapTime [s]')
+        # Look for lap_time in raw telemetry (since we removed LapTime from normalized samples in v3)
+        reported_time = normalized.get('LapTime [s]') or raw_telemetry.get('lap_time') or raw_telemetry.get('LapTime [s]')
         reported_time = (
             float(reported_time)
             if reported_time is not None

@@ -76,12 +76,12 @@ class TestCSVFormatter:
         sample_line = result.strip().split("\n")[-1]
         cells = sample_line.split(',')
 
+        # v3 format: 10 columns (removed LapTime and Y)
         assert cells[0] == "12.346"  # LapDistance rounded to 3 decimals
-        assert cells[1] == "0.457"   # LapTime rounded to 3 decimals
-        assert cells[2] == "1"       # Sector int
-        assert cells[5] == "99.95"   # Throttle preserves two decimals
-        assert cells[10] == "7.30"   # Coordinate min decimals
-        assert cells[11] == ""       # Missing Z becomes blank
+        assert cells[1] == "1"       # Sector int
+        assert cells[4] == "99.95"   # Throttle preserves two decimals
+        assert cells[8] == "-10.12"  # X coordinate min decimals
+        assert cells[9] == ""        # Missing Z becomes blank
 
     def test_samples_sorted_by_distance(self, formatter, metadata, sample_row):
         reordered = sample_row.copy()
@@ -119,3 +119,85 @@ class TestCSVFormatter:
         assert "Sector1End [m],1800.00" in lines
         assert "Sector2End [m],3600.00" in lines
         assert "Sector3End [m],5400.00" in lines
+
+    def test_ten_column_format_no_laptime_no_elevation(self, formatter):
+        """Test CSV format has 10 columns (removed LapTime and Y)"""
+        metadata = OrderedDict([
+            ("Format", "LMUTelemetry v3"),
+            ("Version", "1"),
+            ("Player", "Test Driver"),
+            ("TrackName", "Test Track"),
+            ("CarName", "Test Car"),
+            ("SessionUTC", "2025-01-01T00:00:00Z"),
+            ("LapTime [s]", "95.123"),
+            ("TrackLen [m]", "5400.00"),
+        ])
+
+        sample = {
+            "LapDistance [m]": 100.0,
+            "LapTime [s]": 5.0,  # Should not appear in data rows
+            "Sector [int]": 0,
+            "Speed [km/h]": 200.0,
+            "EngineRevs [rpm]": 7000.0,
+            "ThrottlePercentage [%]": 95.0,
+            "BrakePercentage [%]": 0.0,
+            "Steer [%]": -5.0,
+            "Gear [int]": 5,
+            "X [m]": 100.0,
+            "Y [m]": 5.0,  # Should not appear in data rows
+            "Z [m]": 200.0,
+        }
+
+        result = formatter.format_lap([sample], metadata)
+        lines = result.strip().split("\n")
+
+        # Find header line (after metadata)
+        header_idx = None
+        for i, line in enumerate(lines):
+            if line.startswith("LapDistance [m]"):
+                header_idx = i
+                break
+
+        assert header_idx is not None, "Header not found"
+        header = lines[header_idx]
+        header_cols = header.split(",")
+
+        # Should be 10 columns (removed LapTime and Y)
+        assert len(header_cols) == 10
+        assert "LapTime [s]" not in header_cols
+        assert "Y [m]" not in header_cols
+
+        # Verify data row has 10 values
+        data_row = lines[header_idx + 1]
+        data_cols = data_row.split(",")
+        assert len(data_cols) == 10
+
+    def test_laptime_only_in_metadata_not_data(self, formatter):
+        """Test that LapTime appears in metadata but not in data rows"""
+        metadata = OrderedDict([
+            ("Format", "LMUTelemetry v3"),
+            ("LapTime [s]", "95.123"),
+        ])
+
+        sample = {
+            "LapDistance [m]": 100.0,
+            "Sector [int]": 0,
+            "Speed [km/h]": 200.0,
+            "EngineRevs [rpm]": 7000.0,
+            "ThrottlePercentage [%]": 95.0,
+            "BrakePercentage [%]": 0.0,
+            "Steer [%]": -5.0,
+            "Gear [int]": 5,
+            "X [m]": 100.0,
+            "Z [m]": 200.0,
+        }
+
+        result = formatter.format_lap([sample], metadata)
+        lines = result.strip().split("\n")
+
+        # LapTime should be in metadata
+        assert "LapTime [s],95.123" in lines
+
+        # But header should not have LapTime column
+        header_line = [l for l in lines if l.startswith("LapDistance [m]")][0]
+        assert "LapTime [s]" not in header_line
