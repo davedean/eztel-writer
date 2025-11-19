@@ -186,19 +186,7 @@ class SessionManager:
             return False
 
         last = self.lap_samples[-1]
-
-        try:
-            same_distance = float(normalized.get('LapDistance [m]', -1)) == float(
-                last.get('LapDistance [m]', -2)
-            )
-            same_time = float(normalized.get('LapTime [s]', -1)) == float(
-                last.get('LapTime [s]', -2)
-            )
-        except (TypeError, ValueError):
-            return False
-
-        if not (same_distance and same_time):
-            return False
-
-        # Guard against duplicate sectors as well in case lap time/distance reset
-        return normalized.get('Sector [int]') == last.get('Sector [int]')
+        # Treat samples as duplicates only when the fully-normalized payload matches.
+        # This keeps truly identical records from being buffered while still allowing
+        # repeated distance/time readings that carry new sensor data to be logged.
+        return normalized == last
