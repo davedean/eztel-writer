@@ -69,6 +69,18 @@ class TelemetryApp:
             lap_data: List of telemetry samples for the lap
             lap_summary: Summary data (lap time, sectors, etc.)
         """
+        # Check if lap was completed normally (not interrupted/incomplete)
+        lap_completed = lap_summary.get('lap_completed', True)
+        stop_reason = lap_summary.get('stop_reason')
+
+        if not lap_completed:
+            # Discard incomplete laps (out laps, partial laps, teleports to pits, etc.)
+            print(f"\n*** Lap {lap_summary['lap']} incomplete (reason: {stop_reason}) - discarding")
+            print(f"    Lap time: {lap_summary.get('lap_time', 0.0):.3f}s")
+            print(f"    Samples: {lap_summary.get('samples_count', 0)}")
+            print(f"    [SKIPPED] Incomplete lap not saved")
+            return
+
         print(f"\n*** Lap {lap_summary['lap']} completed!")
         print(f"    Lap time: {lap_summary.get('lap_time', 0.0):.3f}s")
         print(f"    Samples: {lap_summary.get('samples_count', 0)}")
