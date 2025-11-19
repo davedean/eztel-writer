@@ -78,7 +78,8 @@ class SessionManager:
             telemetry: Telemetry data to buffer
         """
         normalized = self.normalizer.normalize(telemetry)
-        self.lap_samples.append(normalized)
+        if not self._is_duplicate_sample(normalized):
+            self.lap_samples.append(normalized)
 
     def get_lap_data(self) -> List[Dict[str, Any]]:
         """
@@ -179,3 +180,25 @@ class SessionManager:
                 except (TypeError, ValueError):
                     continue
         return None
+
+    def _is_duplicate_sample(self, normalized: Mapping[str, Any]) -> bool:
+        if not self.lap_samples:
+            return False
+
+        last = self.lap_samples[-1]
+
+        try:
+            same_distance = float(normalized.get('LapDistance [m]', -1)) == float(
+                last.get('LapDistance [m]', -2)
+            )
+            same_time = float(normalized.get('LapTime [s]', -1)) == float(
+                last.get('LapTime [s]', -2)
+            )
+        except (TypeError, ValueError):
+            return False
+
+        if not (same_distance and same_time):
+            return False
+
+        # Guard against duplicate sectors as well in case lap time/distance reset
+        return normalized.get('Sector [int]') == last.get('Sector [int]')

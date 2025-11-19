@@ -192,6 +192,7 @@ def build_metadata_block(
         session_info.get("track_length"),
         _max_sample_value(lap_samples, "LapDistance [m]"),
         default=0.0,
+        require_positive=True,
     )
     metadata["TrackLen [m]"] = _format_decimal(track_length, 2)
 
@@ -283,12 +284,17 @@ def _format_decimal(value: float, min_decimals: int) -> str:
     return formatted
 
 
-def _first_float(*values: Any, default: float = 0.0) -> float:
+def _first_float(*values: Any, default: float = 0.0, require_positive: bool = False) -> float:
     for value in values:
         if value is None:
             continue
         try:
-            return float(value)
+            numeric = float(value)
         except (TypeError, ValueError):
             continue
+
+        if require_positive and numeric <= 0:
+            continue
+
+        return numeric
     return float(default)

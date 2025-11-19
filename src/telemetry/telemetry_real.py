@@ -62,12 +62,19 @@ class RealTelemetryReader(TelemetryReaderInterface):
             scor = self.info.playersVehicleScoring()
             scor_info = self.info.Rf2Scor.mScoringInfo
 
-            # Extract track info
-            track_name = self.Cbytestring2Python(scor_info.mTrackName)
+            # Extract track info (prefer telemetry buffer for layout/variant)
+            track_name = self.Cbytestring2Python(tele.mTrackName) or self.Cbytestring2Python(
+                scor_info.mTrackName
+            )
+            track_length = float(scor_info.mLapDist)
 
             # Extract player/car info
             player_name = self.Cbytestring2Python(scor.mDriverName)
-            car_name = self.Cbytestring2Python(scor.mVehicleName)
+            car_name = self.Cbytestring2Python(tele.mVehicleName) or self.Cbytestring2Python(
+                scor.mVehicleName
+            )
+
+            session_type = self._session_from_int(scor_info.mSession)
 
             # Get current lap info
             lap = scor.mTotalLaps if scor.mTotalLaps > 0 else 1
@@ -83,7 +90,7 @@ class RealTelemetryReader(TelemetryReaderInterface):
                 'player_name': player_name,
                 'track_name': track_name,
                 'car_name': car_name,
-                'session_type': 'Practice',  # TODO: Map from scor_info.mSession
+                'session_type': session_type,
                 'game_version': '1.0',
                 'date': datetime.now(),
 
@@ -98,7 +105,7 @@ class RealTelemetryReader(TelemetryReaderInterface):
 
                 # Track Info
                 'track_id': 0,  # TODO: Get from game
-                'track_length': 0.0,  # TODO: Get from game
+                'track_length': track_length,
                 'track_temp': scor_info.mTrackTemp,
                 'ambient_temp': scor_info.mAmbientTemp,
                 'weather': 'Clear',  # TODO: Map from weather data
@@ -226,17 +233,40 @@ class RealTelemetryReader(TelemetryReaderInterface):
         try:
             scor_info = self.info.Rf2Scor.mScoringInfo
             scor = self.info.playersVehicleScoring()
+            tele = self.info.playersVehicleTelemetry()
 
             return {
                 'player_name': self.Cbytestring2Python(scor.mDriverName),
-                'track_name': self.Cbytestring2Python(scor_info.mTrackName),
-                'car_name': self.Cbytestring2Python(scor.mVehicleName),
-                'session_type': 'Practice',  # TODO: Map session type
+                'track_name': self.Cbytestring2Python(tele.mTrackName)
+                or self.Cbytestring2Python(scor_info.mTrackName),
+                'car_name': self.Cbytestring2Python(tele.mVehicleName)
+                or self.Cbytestring2Python(scor.mVehicleName),
+                'session_type': self._session_from_int(scor_info.mSession),
                 'game_version': '1.0',
                 'date': datetime.now(),
                 'track_id': 0,
-                'track_length': 0.0,
+                'track_length': float(scor_info.mLapDist),
             }
         except Exception as e:
             print(f"Error getting session info: {e}")
             return {}
+
+    @staticmethod
+    def _session_from_int(session_code: int) -> str:
+        mapping = {
+            0: 'TestDay',
+            1: 'Practice',
+            2: 'Practice',
+            3: 'Practice',
+            4: 'Practice',
+            5: 'Qualifying',
+            6: 'Qualifying',
+            7: 'Qualifying',
+            8: 'Qualifying',
+            9: 'Warmup',
+            10: 'Race',
+            11: 'Race',
+            12: 'Race',
+            13: 'Race',
+        }
+        return mapping.get(session_code, 'Practice')
