@@ -110,3 +110,22 @@ class TestSessionManager:
         assert summary['lap_time'] == pytest.approx(75.4321)
         assert summary['lap_distance'] == pytest.approx(300.0)
         assert summary['samples_count'] == 2
+
+    def test_session_stop_on_idle_timeout(self):
+        manager = SessionManager(idle_timeout=0.5, min_speed_kmh=1.0)
+
+        manager.update({'lap': 1, 'lap_distance': 10.0, 'speed': 50.0}, timestamp=0.0)
+        events = manager.update(
+            {'lap': 1, 'lap_distance': 10.0, 'speed': 0.0},
+            timestamp=0.6,
+        )
+
+        assert events.get('session_stopped') == 'idle_timeout'
+
+    def test_session_stop_on_lap_distance_reset(self):
+        manager = SessionManager(lap_reset_tolerance=1.0)
+
+        manager.update({'lap': 1, 'lap_distance': 100.0}, timestamp=0.0)
+        events = manager.update({'lap': 1, 'lap_distance': 0.0}, timestamp=0.1)
+
+        assert events.get('session_stopped') == 'lap_distance_reset'

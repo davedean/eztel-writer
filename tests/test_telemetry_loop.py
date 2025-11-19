@@ -224,3 +224,37 @@ class TestTelemetryLoop:
 
         assert 'lap' in status
         assert status['lap'] >= 0
+
+    @patch('src.telemetry_loop.ProcessMonitor')
+    @patch('src.telemetry_loop.get_telemetry_reader')
+    def test_stops_logging_when_idle(self, mock_get_reader, mock_process_monitor):
+        """Should flush and suspend logging when car is idle for too long"""
+        mock_process = Mock()
+        mock_process.is_running.return_value = True
+        mock_process_monitor.return_value = mock_process
+
+        reader = Mock()
+        reader.is_available.return_value = True
+        samples = [
+            {'lap': 1, 'lap_distance': 10.0, 'lap_time': 1.0, 'speed': 50.0},
+            {'lap': 1, 'lap_distance': 10.0, 'lap_time': 2.0, 'speed': 0.0},
+        ]
+        reader.read.side_effect = samples + [samples[-1]]
+        mock_get_reader.return_value = reader
+
+        loop = TelemetryLoop({
+            'target_process': 'python',
+            'idle_timeout_seconds': 0.1,
+            'min_speed_kmh': 1.0,
+        })
+        loop.start()
+
+        with patch('src.telemetry_loop.time.time', side_effect=[0.0, 0.2]):
+            status1 = loop.run_once()
+            assert len(loop.session_manager.lap_samples) > 0
+            status2 = loop.run_once()
+
+        assert status1['lap_completed'] is False
+        assert status2['session_stopped'] is True
+        assert status2['stop_reason'] == 'idle_timeout'
+        assert len(loop.session_manager.lap_samples) == 0

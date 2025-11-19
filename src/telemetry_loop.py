@@ -34,8 +34,16 @@ class TelemetryLoop:
 
         # Initialize components
         self.process_monitor = ProcessMonitor(self.config)
-        self.session_manager = SessionManager()
+        idle_timeout = float(self.config.get('idle_timeout_seconds', 5.0))
+        min_speed = float(self.config.get('min_speed_kmh', 1.0))
+        lap_reset_tolerance = float(self.config.get('lap_reset_tolerance_m', 5.0))
+        self.session_manager = SessionManager(
+            idle_timeout=idle_timeout,
+            min_speed_kmh=min_speed,
+            lap_reset_tolerance=lap_reset_tolerance,
+        )
         self.telemetry_reader = get_telemetry_reader()
+        self._min_speed_kmh = min_speed
 
         # Callbacks
         self.on_lap_complete = self.config.get('on_lap_complete', None)
@@ -43,6 +51,7 @@ class TelemetryLoop:
         # Control flags
         self._running = False
         self._paused = False
+        self._suspend_logging = False
 
     def start(self):
         """Start the telemetry loop (non-blocking)"""
@@ -88,6 +97,8 @@ class TelemetryLoop:
         if not self._running:
             return None
 
+        current_time = time.time()
+
         status = {
             'state': self.session_manager.state,
             'process_detected': False,
@@ -95,6 +106,8 @@ class TelemetryLoop:
             'lap': self.session_manager.current_lap,
             'samples_buffered': len(self.session_manager.lap_samples),
             'lap_completed': False,
+            'session_stopped': False,
+            'stop_reason': None,
         }
 
         # Check if target process is running
@@ -106,6 +119,7 @@ class TelemetryLoop:
             if self.session_manager.state != SessionState.IDLE:
                 self.session_manager.state = SessionState.IDLE
                 self.session_manager.clear_lap_buffer()
+            self._suspend_logging = False
             return status
 
         # Process detected
@@ -119,36 +133,44 @@ class TelemetryLoop:
         # Check if telemetry is available
         if not self.telemetry_reader.is_available():
             status['telemetry_available'] = False
+            self._suspend_logging = False
             return status
 
         status['telemetry_available'] = True
-
-        # Start logging if we haven't already
-        if self.session_manager.state == SessionState.DETECTED:
-            self.session_manager.state = SessionState.LOGGING
-            self.session_manager.current_session_id = self.session_manager.generate_session_id()
 
         # Read telemetry
         try:
             telemetry = self.telemetry_reader.read()
 
             # Update session and check for events
-            events = self.session_manager.update(telemetry)
+            events = self.session_manager.update(telemetry, current_time)
 
             # Handle lap completion
             if events.get('lap_completed'):
                 status['lap_completed'] = True
+                self._flush_lap()
 
-                # Get completed lap data
-                lap_data = self.session_manager.get_lap_data()
-                lap_summary = self.session_manager.get_lap_summary()
+            stop_reason = events.get('session_stopped')
+            if stop_reason:
+                self._flush_lap(reason=stop_reason)
+                status['session_stopped'] = True
+                status['stop_reason'] = stop_reason
+                self._suspend_logging = True
+                if self.session_manager.state == SessionState.LOGGING:
+                    self.session_manager.state = SessionState.DETECTED
 
-                # Trigger callback
-                if self.on_lap_complete and len(lap_data) > 0:
-                    self.on_lap_complete(lap_data, lap_summary)
+            if self._suspend_logging:
+                if self._sample_indicates_active(telemetry):
+                    self._suspend_logging = False
+                else:
+                    status['state'] = self.session_manager.state
+                    status['lap'] = self.session_manager.current_lap
+                    status['samples_buffered'] = len(self.session_manager.lap_samples)
+                    return status
 
-                # Clear buffer for next lap
-                self.session_manager.clear_lap_buffer()
+            if self.session_manager.state == SessionState.DETECTED:
+                self.session_manager.state = SessionState.LOGGING
+                self.session_manager.current_session_id = self.session_manager.generate_session_id()
 
             # Add sample to buffer
             self.session_manager.add_sample(telemetry)
@@ -181,3 +203,38 @@ class TelemetryLoop:
         except KeyboardInterrupt:
             # Graceful shutdown on Ctrl+C
             self.stop()
+
+    def _flush_lap(self, reason: Optional[str] = None) -> bool:
+        """
+        Flush buffered lap samples and trigger the callback.
+
+        Returns True if lap data was emitted.
+        """
+        lap_data = self.session_manager.get_lap_data()
+        if not lap_data:
+            self.session_manager.clear_lap_buffer()
+            return False
+
+        lap_summary = self.session_manager.get_lap_summary().copy()
+        if reason:
+            lap_summary['stop_reason'] = reason
+            lap_summary['lap_completed'] = False
+        else:
+            lap_summary['lap_completed'] = True
+
+        if self.on_lap_complete:
+            self.on_lap_complete(lap_data, lap_summary)
+
+        self.session_manager.clear_lap_buffer()
+        return True
+
+    def _sample_indicates_active(self, telemetry: Dict[str, Any]) -> bool:
+        """Return True if the sample shows forward progress."""
+        speed = telemetry.get('speed', telemetry.get('Speed [km/h]'))
+        if speed is not None:
+            try:
+                if float(speed) >= self._min_speed_kmh:
+                    return True
+            except (TypeError, ValueError):
+                pass
+        return False

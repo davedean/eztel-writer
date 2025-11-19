@@ -2,7 +2,7 @@
 
 from enum import Enum
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Any, Dict, List, Mapping, Optional
 
 from src.mvp_format import SampleNormalizer
 
@@ -27,22 +27,36 @@ class SessionManager:
     - Generate session IDs
     """
 
-    def __init__(self, normalizer: SampleNormalizer | None = None):
+    def __init__(
+        self,
+        normalizer: SampleNormalizer | None = None,
+        idle_timeout: float = 5.0,
+        min_speed_kmh: float = 1.0,
+        lap_reset_tolerance: float = 5.0,
+    ):
         self.state = SessionState.IDLE
         self.current_lap = 0
         self.current_session_id = None
         self.lap_samples = []  # Buffer for current lap (normalized samples)
         self.normalizer = normalizer or SampleNormalizer()
+        self.idle_timeout = max(0.0, idle_timeout)
+        self.min_speed_kmh = max(0.0, min_speed_kmh)
+        self.lap_reset_tolerance = max(0.0, lap_reset_tolerance)
+        self._last_progress_time: Optional[float] = None
+        self.last_lap_distance: Optional[float] = None
 
-    def update(self, telemetry: Dict[str, Any]) -> Dict[str, bool]:
+    def update(
+        self, telemetry: Dict[str, Any], timestamp: Optional[float] = None
+    ) -> Dict[str, Any]:
         """
         Update session state based on telemetry
 
         Args:
             telemetry: Current telemetry data
+            timestamp: Optional wall-clock timestamp for idle detection
 
         Returns:
-            Dict with events: {'lap_completed': True, ...}
+            Dict with events: {'lap_completed': True, 'session_stopped': 'reason', ...}
         """
         events = {}
 
@@ -52,6 +66,7 @@ class SessionManager:
             events['lap_completed'] = True
 
         self.current_lap = new_lap
+        events.update(self._detect_stop_conditions(telemetry, timestamp))
 
         return events
 
@@ -106,3 +121,61 @@ class SessionManager:
             'samples_count': len(self.lap_samples),
             'lap_distance': last_sample.get('LapDistance [m]', 0.0),
         }
+
+    def _detect_stop_conditions(
+        self, telemetry: Dict[str, Any], timestamp: Optional[float]
+    ) -> Dict[str, str]:
+        events: Dict[str, str] = {}
+        lap_distance = self._extract_float(
+            telemetry, 'lap_distance', 'LapDistance [m]'
+        )
+        speed = self._extract_float(telemetry, 'speed', 'Speed [km/h]')
+
+        if timestamp is not None and self._last_progress_time is None:
+            self._last_progress_time = timestamp
+
+        # Detect abrupt lap distance resets (teleport to pits, session change, etc.)
+        if (
+            lap_distance is not None
+            and self.last_lap_distance is not None
+            and lap_distance + self.lap_reset_tolerance < self.last_lap_distance
+        ):
+            events['session_stopped'] = 'lap_distance_reset'
+
+        # Track forward progress
+        if lap_distance is not None:
+            if (
+                self.last_lap_distance is None
+                or lap_distance > self.last_lap_distance + 0.1
+            ) and timestamp is not None:
+                self._last_progress_time = timestamp
+            self.last_lap_distance = lap_distance
+
+        if speed is not None and speed >= self.min_speed_kmh and timestamp is not None:
+            self._last_progress_time = timestamp
+
+        # Idle timeout - only if configured (>0)
+        if (
+            self.idle_timeout > 0
+            and timestamp is not None
+            and self._last_progress_time is not None
+            and (timestamp - self._last_progress_time) >= self.idle_timeout
+            and 'session_stopped' not in events
+        ):
+            events['session_stopped'] = 'idle_timeout'
+
+        if events.get('session_stopped') and timestamp is not None:
+            # Reset progress timer so we do not immediately fire again
+            self._last_progress_time = timestamp
+
+        return events
+
+    @staticmethod
+    def _extract_float(telemetry: Mapping[str, Any], *keys: str) -> Optional[float]:
+        for key in keys:
+            if key in telemetry and telemetry[key] is not None:
+                try:
+                    return float(telemetry[key])
+                except (TypeError, ValueError):
+                    continue
+        return None
