@@ -44,6 +44,9 @@ class SessionManager:
         self.lap_reset_tolerance = max(0.0, lap_reset_tolerance)
         self._last_progress_time: Optional[float] = None
         self.last_lap_distance: Optional[float] = None
+        self.lap_start_timestamp: Optional[float] = None
+        self.last_lap_time: float = 0.0
+        self.track_length: float = 0.0
 
     def update(
         self, telemetry: Dict[str, Any], timestamp: Optional[float] = None
@@ -64,20 +67,32 @@ class SessionManager:
         new_lap = telemetry.get('lap', 0)
         if new_lap != self.current_lap and self.current_lap > 0:
             events['lap_completed'] = True
+            if timestamp is not None:
+                self.lap_start_timestamp = timestamp
+                self.last_lap_time = 0.0
 
         self.current_lap = new_lap
+        if self.current_lap > 0 and self.lap_start_timestamp is None and timestamp is not None:
+            self.lap_start_timestamp = timestamp
+
+        self._update_track_length(telemetry)
         events.update(self._detect_stop_conditions(telemetry, timestamp))
 
         return events
 
-    def add_sample(self, telemetry: Dict[str, Any]):
+    def add_sample(self, telemetry: Dict[str, Any], timestamp: Optional[float] = None):
         """
         Add telemetry sample to current lap buffer
 
         Args:
             telemetry: Telemetry data to buffer
+            timestamp: Optional wall-clock timestamp for lap time reconstruction
         """
+        if 'track_length' not in telemetry and self.track_length > 0:
+            telemetry = {**telemetry, 'track_length': self.track_length}
+
         normalized = self.normalizer.normalize(telemetry)
+        self._assign_lap_time(normalized, timestamp)
         if not self._is_duplicate_sample(normalized):
             self.lap_samples.append(normalized)
 
@@ -93,6 +108,7 @@ class SessionManager:
     def clear_lap_buffer(self):
         """Clear lap buffer after write"""
         self.lap_samples.clear()
+        self.last_lap_time = 0.0
 
     def generate_session_id(self) -> str:
         """
@@ -190,3 +206,61 @@ class SessionManager:
         # This keeps truly identical records from being buffered while still allowing
         # repeated distance/time readings that carry new sensor data to be logged.
         return normalized == last
+
+    def _assign_lap_time(
+        self, normalized: Dict[str, Any], timestamp: Optional[float]
+    ) -> None:
+        """Ensure LapTime is present and monotonic using timestamps when available."""
+
+        if timestamp is not None and self.lap_start_timestamp is None:
+            self.lap_start_timestamp = timestamp
+
+        reported_time = normalized.get('LapTime [s]')
+        reported_time = (
+            float(reported_time)
+            if reported_time is not None
+            else None
+        )
+
+        computed_time = None
+        if timestamp is not None and self.lap_start_timestamp is not None:
+            computed_time = max(0.0, timestamp - self.lap_start_timestamp)
+
+        lap_time = self._select_time_value(reported_time, computed_time)
+        normalized['LapTime [s]'] = lap_time
+        self.last_lap_time = lap_time
+
+    def _select_time_value(
+        self, reported_time: Optional[float], computed_time: Optional[float]
+    ) -> float:
+        """Pick the best lap time candidate and enforce monotonicity."""
+
+        valid_reported = (
+            reported_time
+            if reported_time is not None and reported_time >= 0
+            else None
+        )
+
+        if computed_time is not None:
+            if valid_reported is None or valid_reported < computed_time - 0.02:
+                chosen = computed_time
+            else:
+                chosen = max(valid_reported, computed_time)
+        else:
+            chosen = valid_reported if valid_reported is not None else self.last_lap_time
+
+        if chosen < self.last_lap_time:
+            return self.last_lap_time
+
+        return chosen
+
+    def _update_track_length(self, telemetry: Mapping[str, Any]) -> None:
+        candidate = self._extract_float(telemetry, 'track_length', 'TrackLen [m]')
+        if candidate and candidate > self.track_length:
+            self.track_length = candidate
+
+        lap_distance = self._extract_float(
+            telemetry, 'lap_distance', 'LapDistance [m]'
+        )
+        if lap_distance and lap_distance > self.track_length:
+            self.track_length = lap_distance

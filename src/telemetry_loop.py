@@ -173,7 +173,7 @@ class TelemetryLoop:
                 self.session_manager.current_session_id = self.session_manager.generate_session_id()
 
             # Add sample to buffer
-            self.session_manager.add_sample(telemetry)
+            self.session_manager.add_sample(telemetry, timestamp=current_time)
 
             # Update status
             status['state'] = self.session_manager.state

@@ -74,8 +74,8 @@ class SampleNormalizer:
             "Y [m]": self._optional_float(
                 telemetry.get("Y [m]"), telemetry.get("position_y")
             ),
-            "Z [m]": self._optional_float(
-                telemetry.get("Z [m]"), telemetry.get("position_z")
+            "Z [m]": self._resolve_altitude(
+                telemetry.get("Z [m]"), telemetry.get("position_z"), telemetry.get("position_y")
             ),
         }
 
@@ -165,6 +165,17 @@ class SampleNormalizer:
 
         return 0
 
+    def _resolve_altitude(self, *values: Any) -> Any:
+        """Return an optional altitude; suppress when lateral axes are present."""
+
+        # If a lateral Y axis is already present we can skip storing vertical height
+        # to avoid bloating the CSV when elevation is not needed for the viewer.
+        y_value = values[-1]
+        if y_value is not None:
+            return None
+
+        return self._optional_float(*values[:-1])
+
 
 def build_metadata_block(
     session_info: Mapping[str, Any],
@@ -195,6 +206,12 @@ def build_metadata_block(
         require_positive=True,
     )
     metadata["TrackLen [m]"] = _format_decimal(track_length, 2)
+
+    sector_times = _resolve_sector_times(session_info, lap_samples, metadata["LapTime [s]"])
+    for index, sector_time in enumerate(sector_times, start=1):
+        if sector_time is None:
+            continue
+        metadata[f"Sector{index}Time [s]"] = _format_decimal(sector_time, 3)
 
     # Optional metadata derived from session info
     optional_pairs = OrderedDict(
@@ -266,6 +283,71 @@ def _max_sample_value(
         if value > maximum:
             maximum = value
     return maximum
+
+
+def _resolve_sector_times(
+    session_info: Mapping[str, Any],
+    lap_samples: Iterable[Mapping[str, Any]],
+    lap_time: str,
+) -> List[float | None]:
+    """Determine sector split times from session info or lap samples."""
+
+    def _positive(value: Any) -> float | None:
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            return None
+        return numeric if numeric > 0 else None
+
+    # Prefer explicit sector info from the session source.
+    s1 = _positive(session_info.get("sector1_time"))
+    s2 = _positive(session_info.get("sector2_time"))
+    s3 = _positive(session_info.get("sector3_time"))
+
+    if s1 and s2 and s3:
+        return [s1, s2, s3]
+
+    derived = _derive_sector_splits(lap_samples)
+    if derived:
+        s1 = s1 or derived.get(0)
+        s2 = s2 or derived.get(1)
+        s3 = s3 or derived.get(2)
+
+    try:
+        lap_total = float(lap_time)
+    except (TypeError, ValueError):
+        lap_total = None
+
+    if lap_total is not None and (s1 or s2) and s3 is None:
+        remainder = lap_total - (s1 or 0.0) - (s2 or 0.0)
+        if remainder > 0:
+            s3 = remainder
+
+    return [s1, s2, s3]
+
+
+def _derive_sector_splits(
+    lap_samples: Iterable[Mapping[str, Any]]
+) -> Dict[int, float]:
+    splits: Dict[int, float] = {}
+    for sample in sorted(
+        lap_samples, key=lambda s: s.get("LapDistance [m]", 0.0)
+    ):
+        try:
+            sector = int(sample.get("Sector [int]", 0))
+            lap_time = float(sample.get("LapTime [s]", 0.0))
+        except (TypeError, ValueError):
+            continue
+
+        if sector <= 0:
+            continue
+
+        if sector not in splits and lap_time > 0:
+            splits[sector - 1] = lap_time
+            if len(splits) >= 2:
+                break
+
+    return splits
 
 
 def _format_decimal(value: float, min_decimals: int) -> str:
