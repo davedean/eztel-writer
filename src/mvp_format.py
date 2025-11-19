@@ -8,9 +8,9 @@ from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Tuple
 
 
 # Canonical telemetry header for the trimmed MVP export
+# LMUTelemetry v3: Removed LapTime (redundant with metadata) and Y (elevation not needed)
 MVP_TELEMETRY_HEADER: List[str] = [
     "LapDistance [m]",
-    "LapTime [s]",
     "Sector [int]",
     "Speed [km/h]",
     "EngineRevs [rpm]",
@@ -19,7 +19,6 @@ MVP_TELEMETRY_HEADER: List[str] = [
     "Steer [%]",
     "Gear [int]",
     "X [m]",
-    "Y [m]",
     "Z [m]",
 ]
 
@@ -27,7 +26,7 @@ MVP_TELEMETRY_HEADER: List[str] = [
 class SampleNormalizer:
     """Normalises raw telemetry dictionaries into the MVP schema."""
 
-    _THREE_DEC_CHANNELS = {"LapDistance [m]", "LapTime [s]"}
+    _THREE_DEC_CHANNELS = {"LapDistance [m]"}
     _PERCENT_CHANNELS = {
         "ThrottlePercentage [%]",
         "BrakePercentage [%]",
@@ -39,13 +38,9 @@ class SampleNormalizer:
         lap_distance = self._to_float(
             telemetry.get("LapDistance [m]"), telemetry.get("lap_distance"), default=0.0
         )
-        lap_time = self._to_float(
-            telemetry.get("LapTime [s]"), telemetry.get("lap_time"), default=0.0
-        )
 
         sample: Dict[str, Any] = {
             "LapDistance [m]": lap_distance,
-            "LapTime [s]": lap_time,
             "Sector [int]": self._resolve_sector(telemetry, lap_distance),
             "Speed [km/h]": self._to_float(
                 telemetry.get("Speed [km/h]"), telemetry.get("speed"), default=0.0
@@ -71,11 +66,8 @@ class SampleNormalizer:
             "X [m]": self._optional_float(
                 telemetry.get("X [m]"), telemetry.get("position_x")
             ),
-            "Y [m]": self._optional_float(
-                telemetry.get("Y [m]"), telemetry.get("position_y")
-            ),
-            "Z [m]": self._resolve_altitude(
-                telemetry.get("Z [m]"), telemetry.get("position_z"), telemetry.get("position_y")
+            "Z [m]": self._optional_float(
+                telemetry.get("Z [m]"), telemetry.get("position_z")
             ),
         }
 
@@ -176,17 +168,6 @@ class SampleNormalizer:
 
         return 0
 
-    def _resolve_altitude(self, *values: Any) -> Any:
-        """Return an optional altitude; suppress when lateral axes are present."""
-
-        # If a lateral Y axis is already present we can skip storing vertical height
-        # to avoid bloating the CSV when elevation is not needed for the viewer.
-        y_value = values[-1]
-        if y_value is not None:
-            return None
-
-        return self._optional_float(*values[:-1])
-
 
 def build_metadata_block(
     session_info: Mapping[str, Any],
@@ -195,7 +176,7 @@ def build_metadata_block(
     """Assemble ordered metadata rows for the MVP CSV preamble."""
 
     metadata = OrderedDict()
-    metadata["Format"] = "LMUTelemetry v2"
+    metadata["Format"] = "LMUTelemetry v3"
     metadata["Version"] = "1"
     metadata["Player"] = _first_value(
         session_info, "player_name", "Player", fallback="Unknown Driver"

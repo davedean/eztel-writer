@@ -29,11 +29,11 @@ class TestSampleNormalizer:
 
     def test_handles_missing_coordinates(self):
         normalizer = SampleNormalizer()
-        sample = normalizer.normalize({'lap_distance': 0.0, 'lap_time': 0.0, 'position_x': 5.0})
+        sample = normalizer.normalize({'lap_distance': 0.0, 'position_x': 5.0})
 
         assert sample['X [m]'] == 5.0
-        assert sample['Y [m]'] is None
         assert sample['Z [m]'] is None
+        # Y [m] removed in v3 (elevation not needed for planar track view)
 
     def test_sector_estimation_uses_track_length(self):
         normalizer = SampleNormalizer()
