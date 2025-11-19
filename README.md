@@ -4,21 +4,55 @@ A background telemetry logger for Le Mans Ultimate that automatically captures a
 
 ## Project Status
 
-🚧 **In Development** - Phases 1-4 Complete (Core System Implemented)
+🎉 **v0.2.0 Released** - Opponent Lap Tracking Now Available!
 
-### Completed
-- ✅ Project structure setup
+### Latest Release: v0.2.0 (2025-11-20)
+- ✅ **NEW**: Opponent lap tracking for multiplayer sessions
+- ✅ Fastest lap only per opponent (storage optimized)
+- ✅ Configurable: remote players + optional AI tracking
+- ✅ Consistent file naming with track, car, driver, lap time
+- ✅ 91/91 unit tests passing
+
+### Completed Features
+- ✅ Automatic player lap capture
+- ✅ Opponent lap capture (multiplayer)
 - ✅ Mock telemetry system for macOS development
 - ✅ Platform detection (macOS/Windows)
 - ✅ Process monitoring with auto-detection
 - ✅ Session management and lap tracking
-- ✅ Telemetry polling loop (~100Hz)
-- ✅ CSV formatter for LMUTelemetry v2 (12-channel MVP schema)
-- ✅ File management for saving lap data
-- ✅ 61/61 unit tests passing
+- ✅ Telemetry polling loop (~43-50Hz, optimal)
+- ✅ CSV formatter for LMUTelemetry v3 (10-channel MVP schema)
+- ✅ File management with smart naming
+- ✅ Cross-platform development (macOS → Windows)
+- ✅ Windows testing with real LMU telemetry
 
-### In Progress
-- 🔄 Phase 5: Integration testing and example app
+### Testing Status
+- ⏳ Windows multiplayer testing pending (you can help!)
+
+## 🚀 Quick Start (Windows)
+
+### Download & Build v0.2.0
+
+1. **Download**: Get the latest release from [GitHub Releases](https://github.com/davedean/eztel-writer/releases/tag/v0.2.0)
+
+2. **Build**: Follow [WINDOWS_BUILD_INSTRUCTIONS.md](WINDOWS_BUILD_INSTRUCTIONS.md) for step-by-step guide
+
+3. **Quick Build**:
+   ```cmd
+   git clone --branch v0.2.0 https://github.com/davedean/eztel-writer.git
+   cd eztel-writer
+   python -m venv venv
+   venv\Scripts\activate
+   pip install -r requirements.txt -r requirements-windows.txt
+   pip install pyinstaller
+   build.bat
+   ```
+
+4. **Run**: `dist\LMU_Telemetry_Logger.exe`
+
+5. **Test**: Join a multiplayer session in LMU and complete laps!
+
+**Output Location**: `./telemetry_output/*.csv`
 
 ## Features (Planned)
 
