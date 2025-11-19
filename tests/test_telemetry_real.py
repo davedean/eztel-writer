@@ -34,7 +34,7 @@ class TestRealTelemetryReader:
             del sys.modules['pyRfactor2SharedMemory.sharedMemoryAPI']
 
     def test_lap_time_calculated_correctly(self, mock_rf2_module):
-        """Test that lap_time is calculated as mCurrentET - mLapStartET"""
+        """Test that lap_time is read from mTimeIntoLap"""
         mock_sim_api_class, mock_cbytestring = mock_rf2_module
 
         # Create mock API instance
@@ -70,19 +70,16 @@ class TestRealTelemetryReader:
         mock_wheel.mTemperature = [350.0, 350.0, 350.0]
         mock_tele.mWheels = [mock_wheel] * 4
 
-        # Mock scoring data - THIS IS THE KEY PART FOR THE BUG
+        # Mock scoring data
         mock_scor = MagicMock()
         mock_scor.mDriverName = b'David Dean'
         mock_scor.mVehicleName = b'BMW M4 GT3'
         mock_scor.mTotalLaps = 5
         mock_scor.mLapDist = 1500.0
 
-        # BUG REPRODUCTION: These values simulate a lap that's 130 seconds in
-        # mLapStartET = when the lap started (910 seconds into session)
-        # mCurrentET = current time (1040 seconds into session)
-        # Correct lap_time should be: 1040 - 910 = 130 seconds
-        mock_scor.mLapStartET = 910.0
-        mock_scor.mCurrentET = 1040.0
+        # Use mTimeIntoLap directly (fixed in v0.2.1)
+        # Simulates a lap that's 130 seconds in progress
+        mock_scor.mTimeIntoLap = 130.0
         mock_scor.mCurSector1 = 45.0
         mock_scor.mCurSector2 = 42.0
 
@@ -105,11 +102,10 @@ class TestRealTelemetryReader:
         reader = RealTelemetryReader()
         data = reader.read()
 
-        # Verify lap_time is calculated correctly
-        # Should be mCurrentET (1040.0) - mLapStartET (910.0) = 130.0 seconds
+        # Verify lap_time is read from mTimeIntoLap
         assert 'lap_time' in data, "lap_time should be present in telemetry data"
         assert data['lap_time'] == pytest.approx(130.0, abs=0.1), \
-            f"Expected lap_time=130.0s (2:10), got {data['lap_time']}s. Bug: using mLapStartET instead of (mCurrentET - mLapStartET)"
+            f"Expected lap_time=130.0s (2:10), got {data['lap_time']}s"
 
     def test_lap_time_at_lap_start(self, mock_rf2_module):
         """Test lap_time when at the start of a lap"""
@@ -142,9 +138,8 @@ class TestRealTelemetryReader:
         mock_scor.mTotalLaps = 1
         mock_scor.mLapDist = 0.0
 
-        # At lap start: both timestamps are equal
-        mock_scor.mLapStartET = 500.0
-        mock_scor.mCurrentET = 500.0
+        # At lap start: mTimeIntoLap should be 0.0 (fixed in v0.2.1)
+        mock_scor.mTimeIntoLap = 0.0
         mock_scor.mCurSector1 = 0.0
         mock_scor.mCurSector2 = 0.0
 

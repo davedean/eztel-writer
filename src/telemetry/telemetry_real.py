@@ -110,7 +110,7 @@ class RealTelemetryReader(TelemetryReaderInterface):
                 'lap': lap,
                 'lap_distance': lap_distance,
                 'total_distance': total_distance,
-                'lap_time': scor.mCurrentET - scor.mLapStartET,  # Current lap time = current time - lap start time
+                'lap_time': scor.mTimeIntoLap,  # Current lap time (directly from game engine)
                 'sector1_time': sector1_time,
                 'sector2_time': sector2_time,
                 'sector3_time': 0.0,  # Sector 3 calculated from lap - S1 - S2
@@ -306,21 +306,9 @@ class RealTelemetryReader(TelemetryReaderInterface):
                     lap = vehicle_scor.mTotalLaps if vehicle_scor.mTotalLaps > 0 else 1
                     lap_distance = vehicle_scor.mLapDist
 
-                    # Calculate lap time from last lap time + current sector times
-                    # This is an approximation - actual lap time accumulated during the lap
-                    sector1_time = vehicle_scor.mCurSector1
-                    sector2_time = vehicle_scor.mCurSector2
-                    last_lap_time = vehicle_scor.mLastLapTime
-
-                    # Use last lap time if available, otherwise estimate from sectors
-                    if last_lap_time > 0:
-                        lap_time = last_lap_time
-                    elif sector2_time > 0:
-                        lap_time = sector2_time  # In sector 3
-                    elif sector1_time > 0:
-                        lap_time = sector1_time  # In sector 2
-                    else:
-                        lap_time = 0.0  # In sector 1, time not meaningful yet
+                    # Get current lap time directly from game engine
+                    # Use mTimeIntoLap for current lap in progress
+                    lap_time = vehicle_scor.mTimeIntoLap if hasattr(vehicle_scor, 'mTimeIntoLap') else 0.0
 
                     # Calculate speed from local velocity
                     speed = (vehicle_tele.mLocalVel.x**2 +
