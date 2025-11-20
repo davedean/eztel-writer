@@ -4,6 +4,26 @@ import pytest
 from src.opponent_tracker import OpponentTracker, OpponentLapData
 
 
+# Helper function to create complete telemetry dict with all required fields
+def create_telemetry_dict(driver_name='Test Driver', lap=1, lap_distance=100.0,
+                          lap_time=5.0, last_lap_time=0.0, speed=150.0, control=2):
+    """Create a complete telemetry dictionary for testing"""
+    return {
+        'driver_name': driver_name,
+        'lap': lap,
+        'lap_distance': lap_distance,
+        'lap_time': lap_time,
+        'last_lap_time': last_lap_time,
+        'speed': speed,
+        'control': control,
+        'car_name': f'{driver_name} Team #1',
+        'car_model': 'Test Car Model',
+        'team_name': f'{driver_name} Team',
+        'manufacturer': 'Test Manufacturer',
+        'car_class': 'GT3',
+    }
+
+
 class TestOpponentTracker:
     """Test opponent lap tracking"""
 
@@ -49,6 +69,11 @@ class TestOpponentTracker:
             'lap_time': 5.0,
             'speed': 150.0,
             'control': 2,  # Remote player
+            'car_name': 'Test Team #1',
+            'car_model': 'Test Car Model',
+            'team_name': 'Test Team',
+            'manufacturer': 'Test Manufacturer',
+            'car_class': 'GT3',
         }
 
         completed_laps = tracker.update_opponent(telemetry, timestamp=1.0)
@@ -81,7 +106,8 @@ class TestOpponentTracker:
             'driver_name': 'John Doe',
             'lap': 2,
             'lap_distance': 10.0,
-            'lap_time': 125.5,  # Total lap time
+            'lap_time': 0.5,  # Time into new lap (not used for lap completion)
+            'last_lap_time': 125.5,  # Completed lap time (from mLastLapTime)
             'speed': 150.0,
             'control': 2,
         }
@@ -114,7 +140,8 @@ class TestOpponentTracker:
             'driver_name': 'Jane Smith',
             'lap': 2,
             'lap_distance': 10.0,
-            'lap_time': 150.0,  # Slow lap time
+            'lap_time': 0.5,  # Time into new lap
+            'last_lap_time': 150.0,  # Slow completed lap time
             'speed': 150.0,
             'control': 2,
         }, timestamp=4.0)
@@ -138,7 +165,8 @@ class TestOpponentTracker:
             'driver_name': 'Jane Smith',
             'lap': 3,
             'lap_distance': 10.0,
-            'lap_time': 120.0,  # Faster lap time
+            'lap_time': 0.5,  # Time into new lap
+            'last_lap_time': 120.0,  # Faster completed lap time
             'speed': 150.0,
             'control': 2,
         }, timestamp=9.0)
@@ -170,7 +198,8 @@ class TestOpponentTracker:
             'driver_name': 'Bob',
             'lap': 2,
             'lap_distance': 10.0,
-            'lap_time': 120.0,  # Fast lap
+            'lap_time': 0.5,  # Time into new lap
+            'last_lap_time': 120.0,  # Fast completed lap
             'speed': 150.0,
             'control': 2,
         }, timestamp=4.0)
@@ -193,7 +222,8 @@ class TestOpponentTracker:
             'driver_name': 'Bob',
             'lap': 3,
             'lap_distance': 10.0,
-            'lap_time': 140.0,  # Slower lap
+            'lap_time': 0.5,  # Time into new lap
+            'last_lap_time': 140.0,  # Slower completed lap
             'speed': 150.0,
             'control': 2,
         }, timestamp=9.0)

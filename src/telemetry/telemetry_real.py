@@ -1,8 +1,16 @@
 """Real telemetry reader from pyRfactor2SharedMemory (Windows only)"""
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from datetime import datetime
 from .telemetry_interface import TelemetryReaderInterface
+
+# Import REST API client for vehicle metadata
+try:
+    from ..lmu_rest_api import LMURestAPI
+    REST_API_AVAILABLE = True
+except ImportError:
+    REST_API_AVAILABLE = False
+    LMURestAPI = None
 
 
 class RealTelemetryReader(TelemetryReaderInterface):
@@ -41,6 +49,22 @@ class RealTelemetryReader(TelemetryReaderInterface):
         self.SimInfoAPI = SimInfoAPI
         self.Cbytestring2Python = Cbytestring2Python
         self.info = SimInfoAPI()
+
+        # Initialize REST API client for vehicle metadata
+        self.rest_api: Optional[LMURestAPI] = None
+        if REST_API_AVAILABLE and LMURestAPI:
+            try:
+                self.rest_api = LMURestAPI()
+                if self.rest_api.is_available():
+                    # Fetch vehicle data on startup
+                    self.rest_api.fetch_vehicle_data()
+                    print("[LMU REST API] Vehicle metadata loaded successfully")
+                else:
+                    print("[LMU REST API] API not available, will use shared memory only")
+                    self.rest_api = None
+            except Exception as e:
+                print(f"[LMU REST API] Error initializing: {e}")
+                self.rest_api = None
 
     def is_available(self) -> bool:
         """Check if shared memory is accessible"""
@@ -110,7 +134,7 @@ class RealTelemetryReader(TelemetryReaderInterface):
                 'lap': lap,
                 'lap_distance': lap_distance,
                 'total_distance': total_distance,
-                'lap_time': scor.mCurrentET - scor.mLapStartET,  # Current lap time = current time - lap start time
+                'lap_time': scor.mTimeIntoLap,  # Current lap time (directly from game engine)
                 'sector1_time': sector1_time,
                 'sector2_time': sector2_time,
                 'sector3_time': 0.0,  # Sector 3 calculated from lap - S1 - S2
@@ -302,25 +326,31 @@ class RealTelemetryReader(TelemetryReaderInterface):
                     car_name = self.Cbytestring2Python(vehicle_tele.mVehicleName) or \
                                self.Cbytestring2Python(vehicle_scor.mVehicleName)
 
+                    # Enrich with REST API data (car model, manufacturer, team name)
+                    car_model = ''
+                    team_name = ''
+                    manufacturer = ''
+                    vehicle_class_api = ''
+
+                    if self.rest_api:
+                        vehicle_meta = self.rest_api.lookup_vehicle(car_name)
+                        if vehicle_meta:
+                            car_model = vehicle_meta.get('car_model', '')
+                            team_name = vehicle_meta.get('team', '')
+                            manufacturer = vehicle_meta.get('manufacturer', '')
+                            vehicle_class_api = vehicle_meta.get('class', '')
+
+                    # Fallback: if REST API unavailable, use shared memory vehicle class
+                    if not vehicle_class_api:
+                        vehicle_class_api = self.Cbytestring2Python(vehicle_scor.mVehicleClass) if hasattr(vehicle_scor, 'mVehicleClass') else ''
+
                     # Get lap info
                     lap = vehicle_scor.mTotalLaps if vehicle_scor.mTotalLaps > 0 else 1
                     lap_distance = vehicle_scor.mLapDist
 
-                    # Calculate lap time from last lap time + current sector times
-                    # This is an approximation - actual lap time accumulated during the lap
-                    sector1_time = vehicle_scor.mCurSector1
-                    sector2_time = vehicle_scor.mCurSector2
-                    last_lap_time = vehicle_scor.mLastLapTime
-
-                    # Use last lap time if available, otherwise estimate from sectors
-                    if last_lap_time > 0:
-                        lap_time = last_lap_time
-                    elif sector2_time > 0:
-                        lap_time = sector2_time  # In sector 3
-                    elif sector1_time > 0:
-                        lap_time = sector1_time  # In sector 2
-                    else:
-                        lap_time = 0.0  # In sector 1, time not meaningful yet
+                    # Get current lap time directly from game engine
+                    # Use mTimeIntoLap for current lap in progress
+                    lap_time = vehicle_scor.mTimeIntoLap if hasattr(vehicle_scor, 'mTimeIntoLap') else 0.0
 
                     # Calculate speed from local velocity
                     speed = (vehicle_tele.mLocalVel.x**2 +
@@ -330,12 +360,17 @@ class RealTelemetryReader(TelemetryReaderInterface):
                     # Create telemetry dict for this vehicle
                     vehicle_data = {
                         'driver_name': driver_name,
-                        'car_name': car_name,
+                        'car_name': car_name,  # Team entry name (e.g., "Action Express Racing #311:LM 1.41")
+                        'car_model': car_model,  # Car make/model (e.g., "Cadillac V-Series.R")
+                        'team_name': team_name,  # Team name (e.g., "Action Express Racing")
+                        'manufacturer': manufacturer,  # Manufacturer (e.g., "Cadillac")
+                        'car_class': vehicle_class_api,  # Class (e.g., "Hypercar", "GTE", "GT3")
                         'control': vehicle_scor.mControl,  # -1=nobody, 0=local, 1=AI, 2=remote, 3=replay
                         'position': vehicle_scor.mPlace,
                         'lap': lap,
                         'lap_distance': lap_distance,
-                        'lap_time': lap_time,
+                        'lap_time': lap_time,  # mTimeIntoLap (current lap in progress)
+                        'last_lap_time': vehicle_scor.mLastLapTime if hasattr(vehicle_scor, 'mLastLapTime') else 0.0,  # Last completed lap
                         'speed': speed,
                         'rpm': vehicle_tele.mEngineRPM,
                         'gear': vehicle_tele.mGear,

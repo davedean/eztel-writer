@@ -13,7 +13,11 @@ class OpponentLapData:
     samples: List[Dict[str, Any]]
     is_fastest: bool
     position: Optional[int] = None
-    car_name: Optional[str] = None
+    car_name: Optional[str] = None  # Team entry name (e.g., "Action Express Racing #311:LM")
+    car_model: Optional[str] = None  # Car make/model (e.g., "Cadillac V-Series.R")
+    team_name: Optional[str] = None  # Team name (e.g., "Action Express Racing")
+    manufacturer: Optional[str] = None  # Manufacturer (e.g., "Cadillac")
+    car_class: Optional[str] = None  # Vehicle class (e.g., "Hypercar", "GTE", "GT3")
 
 
 class OpponentTracker:
@@ -81,8 +85,19 @@ class OpponentTracker:
 
         # Detect lap completion (lap number increased)
         if current_lap > opponent['current_lap'] and opponent['current_lap'] > 0:
-            # Lap completed - get lap time from last sample or telemetry
-            lap_time = telemetry.get('lap_time', 0.0)
+            # Get last completed lap time from shared memory
+            # Use 'last_lap_time' (mLastLapTime) not 'lap_time' (mTimeIntoLap)
+            # When lap changes 3→4, lap_time=0.5s (time into new lap 4)
+            # but last_lap_time=95.2s (completed lap 3 time)
+            lap_time = telemetry.get('last_lap_time', 0.0)
+
+            # Skip if last lap time is invalid (first lap, out-lap, etc.)
+            if lap_time <= 0.0:
+                # Clear samples for new lap and continue tracking
+                opponent['samples'] = []
+                opponent['lap_start_timestamp'] = timestamp
+                opponent['current_lap'] = current_lap
+                return []
 
             # Check if this lap is faster than previous fastest
             is_fastest = lap_time < opponent['fastest_lap_time']
@@ -101,6 +116,10 @@ class OpponentTracker:
                     is_fastest=True,  # Mark as fastest since we only return fastest
                     position=telemetry.get('position'),
                     car_name=telemetry.get('car_name'),
+                    car_model=telemetry.get('car_model'),
+                    team_name=telemetry.get('team_name'),
+                    manufacturer=telemetry.get('manufacturer'),
+                    car_class=telemetry.get('car_class'),
                 )
                 completed_laps.append(lap_data)
 

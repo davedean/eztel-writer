@@ -19,6 +19,7 @@ On Windows: Will use real LMU telemetry (when implemented)
 import time
 import signal
 import sys
+from datetime import datetime
 from src.telemetry_loop import TelemetryLoop
 from src.csv_formatter import CSVFormatter
 from src.file_manager import FileManager
@@ -142,11 +143,33 @@ class TelemetryApp:
         print(f"    Samples: {len(opponent_lap_data.samples)}")
         print(f"    Fastest: {opponent_lap_data.is_fastest}")
 
-        # Get session info
-        session_info = self.telemetry_reader.get_session_info()
-        session_info['session_id'] = self.telemetry_loop.session_manager.current_session_id
-        session_info['player_name'] = opponent_lap_data.driver_name
-        session_info['car_name'] = opponent_lap_data.car_name or session_info.get('car_name', 'Unknown')
+        # Validate lap time (filter out out-laps, formation laps, invalid laps)
+        MIN_LAP_TIME = 30.0  # Minimum realistic lap time in seconds
+        if opponent_lap_data.lap_time < MIN_LAP_TIME:
+            print(f"    [SKIPPED] Lap time too short ({opponent_lap_data.lap_time:.3f}s < {MIN_LAP_TIME}s) - likely out-lap or invalid")
+            return
+
+        # Validate samples count
+        MIN_SAMPLES = 10  # Minimum samples for valid lap
+        if len(opponent_lap_data.samples) < MIN_SAMPLES:
+            print(f"    [SKIPPED] Too few samples ({len(opponent_lap_data.samples)} < {MIN_SAMPLES})")
+            return
+
+        # Build session info specifically for opponent (don't use player's info!)
+        session_info = {
+            'player_name': opponent_lap_data.driver_name,
+            'car_name': opponent_lap_data.car_name or 'Unknown',  # Team entry (legacy)
+            'car_model': opponent_lap_data.car_model or 'Unknown',  # Car make/model
+            'team_name': opponent_lap_data.team_name or 'Unknown',  # Team name
+            'manufacturer': opponent_lap_data.manufacturer or 'Unknown',  # Manufacturer
+            'car_class': opponent_lap_data.car_class or 'Unknown',  # Vehicle class
+            'track_name': self._get_track_name(),
+            'session_type': self._get_session_type(),
+            'game_version': '1.0',
+            'date': datetime.now(),
+            'track_length': self._get_track_length(),
+            'session_id': self.telemetry_loop.session_manager.current_session_id,
+        }
 
         # Detect sector boundaries from lap data
         track_length = session_info.get('track_length', 0.0)
@@ -186,6 +209,21 @@ class TelemetryApp:
 
         except Exception as e:
             print(f"    [ERROR] Error saving opponent lap: {e}")
+
+    def _get_track_name(self) -> str:
+        """Get current track name from session info"""
+        info = self.telemetry_reader.get_session_info()
+        return info.get('track_name', 'Unknown Track')
+
+    def _get_session_type(self) -> str:
+        """Get current session type from session info"""
+        info = self.telemetry_reader.get_session_info()
+        return info.get('session_type', 'Practice')
+
+    def _get_track_length(self) -> float:
+        """Get current track length from session info"""
+        info = self.telemetry_reader.get_session_info()
+        return info.get('track_length', 0.0)
 
     def signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully"""

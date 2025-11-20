@@ -382,3 +382,140 @@ class TestTelemetryLoop:
         assert callback_data['lap_summary'] is not None
         assert callback_data['lap_summary']['lap_completed'] is False
         assert callback_data['lap_summary']['stop_reason'] == 'lap_distance_reset'
+
+    @patch('src.telemetry_loop.get_telemetry_reader')
+    @patch('src.telemetry_loop.ProcessMonitor')
+    def test_opponent_tracking_works_when_player_in_garage(self, mock_process_monitor, mock_get_reader):
+        """Opponent tracking should work even when player is in garage (DETECTED state, not LOGGING)"""
+        # Mock process monitor
+        mock_process = Mock()
+        mock_process.is_running.return_value = True
+        mock_process_monitor.return_value = mock_process
+
+        # Mock telemetry reader
+        reader = Mock()
+        reader.is_available.return_value = True
+
+        # Player telemetry: stationary in garage (speed = 0)
+        player_sample = {
+            'lap': 1,
+            'lap_distance': 0.0,
+            'lap_time': 0.0,
+            'speed': 0.0,  # Not moving!
+            'throttle': 0.0,
+            'brake': 0.0,
+        }
+        reader.read.return_value = player_sample
+
+        # Opponent telemetry: opponent completes a lap
+        opponent_samples = [
+            # First call: opponent mid-lap
+            [{'driver_name': 'Opponent1', 'lap': 1, 'lap_distance': 1500.0, 'lap_time': 90.0, 'speed': 200.0, 'control': 2, 'last_lap_time': 0.0}],
+            # Second call: opponent completes lap 1, starts lap 2
+            [{'driver_name': 'Opponent1', 'lap': 2, 'lap_distance': 10.0, 'lap_time': 1.0, 'last_lap_time': 95.0, 'speed': 100.0, 'control': 2}],
+        ]
+        reader.get_all_vehicles.side_effect = opponent_samples
+
+        mock_get_reader.return_value = reader
+
+        opponent_callback_data = {'called': False, 'opponent_lap': None}
+
+        def on_opponent_lap_complete(opponent_lap_data):
+            opponent_callback_data['called'] = True
+            opponent_callback_data['opponent_lap'] = opponent_lap_data
+
+        loop = TelemetryLoop({
+            'target_process': 'python',
+            'track_opponents': True,
+            'on_opponent_lap_complete': on_opponent_lap_complete,
+            'min_speed_kmh': 1.0,  # Require 1 km/h to be considered "active"
+        })
+        loop.start()
+
+        # Run twice: first to detect process, second for opponent lap completion
+        with patch('src.telemetry_loop.time.time', return_value=0.0):
+            status1 = loop.run_once()
+
+        with patch('src.telemetry_loop.time.time', return_value=1.0):
+            status2 = loop.run_once()
+
+        # Player should still be in DETECTED state (not LOGGING, since not moving)
+        assert status2['state'] in [SessionState.DETECTED, SessionState.LOGGING]
+
+        # Opponent callback should have been called
+        assert opponent_callback_data['called'] is True
+        assert opponent_callback_data['opponent_lap'] is not None
+        assert opponent_callback_data['opponent_lap'].driver_name == 'Opponent1'
+        assert opponent_callback_data['opponent_lap'].lap_number == 1
+
+    @patch('src.telemetry_loop.get_telemetry_reader')
+    @patch('src.telemetry_loop.ProcessMonitor')
+    def test_opponent_tracking_works_when_player_suspended(self, mock_process_monitor, mock_get_reader):
+        """Opponent tracking should work even when player is suspended (_suspend_logging = True)"""
+        # Mock process monitor
+        mock_process = Mock()
+        mock_process.is_running.return_value = True
+        mock_process_monitor.return_value = mock_process
+
+        # Mock telemetry reader
+        reader = Mock()
+        reader.is_available.return_value = True
+
+        # Player telemetry sequence:
+        # 1. Driving at 500m
+        # 2. Teleport to pits (lap_distance reset) - triggers suspension
+        # 3. Stationary in pits
+        player_samples = [
+            {'lap': 1, 'lap_distance': 500.0, 'lap_time': 50.0, 'speed': 180.0, 'throttle': 80.0, 'brake': 0.0},
+            {'lap': 1, 'lap_distance': 10.0, 'lap_time': 51.0, 'speed': 0.0, 'throttle': 0.0, 'brake': 0.0},  # Teleport!
+            {'lap': 1, 'lap_distance': 10.0, 'lap_time': 52.0, 'speed': 0.0, 'throttle': 0.0, 'brake': 0.0},  # Still in pits
+        ]
+        reader.read.side_effect = player_samples
+
+        # Opponent telemetry: opponent completes lap while player is suspended
+        opponent_samples = [
+            [{'driver_name': 'Opponent1', 'lap': 1, 'lap_distance': 1500.0, 'lap_time': 90.0, 'speed': 200.0, 'control': 2, 'last_lap_time': 0.0}],
+            [{'driver_name': 'Opponent1', 'lap': 1, 'lap_distance': 2500.0, 'lap_time': 95.0, 'speed': 200.0, 'control': 2, 'last_lap_time': 0.0}],
+            [{'driver_name': 'Opponent1', 'lap': 2, 'lap_distance': 10.0, 'lap_time': 1.0, 'last_lap_time': 98.0, 'speed': 100.0, 'control': 2}],  # Lap complete!
+        ]
+        reader.get_all_vehicles.side_effect = opponent_samples
+
+        mock_get_reader.return_value = reader
+
+        opponent_callback_data = {'called': False, 'opponent_lap': None}
+        player_callback_data = {'called': False}
+
+        def on_opponent_lap_complete(opponent_lap_data):
+            opponent_callback_data['called'] = True
+            opponent_callback_data['opponent_lap'] = opponent_lap_data
+
+        def on_player_lap_complete(lap_data, lap_summary):
+            player_callback_data['called'] = True
+
+        loop = TelemetryLoop({
+            'target_process': 'python',
+            'track_opponents': True,
+            'on_opponent_lap_complete': on_opponent_lap_complete,
+            'on_lap_complete': on_player_lap_complete,
+            'lap_reset_tolerance_m': 5.0,
+        })
+        loop.start()
+
+        # Run three times
+        with patch('src.telemetry_loop.time.time', return_value=0.0):
+            status1 = loop.run_once()  # Player driving
+
+        with patch('src.telemetry_loop.time.time', return_value=1.0):
+            status2 = loop.run_once()  # Player teleports, triggers suspension
+
+        with patch('src.telemetry_loop.time.time', return_value=2.0):
+            status3 = loop.run_once()  # Player suspended, opponent completes lap
+
+        # Player should have triggered suspension
+        assert player_callback_data['called'] is True  # Incomplete lap callback
+
+        # Opponent callback should STILL have been called despite player suspension
+        assert opponent_callback_data['called'] is True
+        assert opponent_callback_data['opponent_lap'] is not None
+        assert opponent_callback_data['opponent_lap'].driver_name == 'Opponent1'
+        assert opponent_callback_data['opponent_lap'].lap_number == 1

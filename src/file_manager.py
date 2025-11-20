@@ -86,7 +86,9 @@ class FileManager:
         session_id = session_info.get('session_id', self._generate_fallback_session_id())
 
         # Get raw field values
-        car = session_info.get('car_name') or 'unknown-car'
+        # Prefer car_model (e.g., "Cadillac V-Series.R") over car_name (team entry)
+        car = session_info.get('car_model') or session_info.get('car_name') or 'unknown-car'
+        car_class = session_info.get('car_class') or ''
         track = session_info.get('track_name') or 'unknown-track'
         driver = (
             session_info.get('player_name')
@@ -97,6 +99,7 @@ class FileManager:
 
         # Sanitize fields individually (lowercase, spaces to hyphens)
         car = self._sanitize_field(car)
+        car_class = self._sanitize_field(car_class)
         track = self._sanitize_field(track)
         driver = self._sanitize_field(driver)
 
@@ -107,10 +110,16 @@ class FileManager:
         lap_time_seconds = self._format_lap_time(lap_summary.get('lap_time'))
 
         # Format filename using format string
+        # If car_class is available, prefix the car with it for better organization
+        if car_class:
+            car_with_class = f"{car_class}_{car}"
+        else:
+            car_with_class = car
+
         filename = self.filename_format.format(
             session_id=session_id,
             lap=lap,
-            car=car,
+            car=car_with_class,
             track=track,
             driver=driver,
             date=date_str,

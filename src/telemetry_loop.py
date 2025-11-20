@@ -148,6 +148,32 @@ class TelemetryLoop:
 
         status['telemetry_available'] = True
 
+        # ========================================
+        # OPPONENTS: Track independently of player state
+        # ========================================
+        # Poll opponents BEFORE player session logic so they are tracked
+        # even when player is inactive (in garage, crashed, pits, etc.)
+        if self.track_opponents and self.on_opponent_lap_complete:
+            try:
+                opponents = self.telemetry_reader.get_all_vehicles()
+                for opponent_telemetry in opponents:
+                    completed_laps = self.opponent_tracker.update_opponent(
+                        opponent_telemetry,
+                        timestamp=current_time
+                    )
+                    # Trigger callback for each completed lap
+                    for opponent_lap_data in completed_laps:
+                        self.on_opponent_lap_complete(opponent_lap_data)
+            except Exception as e:
+                # Log error but don't crash main loop
+                print(f"[WARNING] Opponent tracking error: {e}")
+
+        # Update opponent count in status
+        status['opponents_tracked'] = self.opponent_tracker.get_opponent_count() if self.track_opponents else 0
+
+        # ========================================
+        # PLAYER: Session management and lap tracking
+        # ========================================
         # Read telemetry
         try:
             telemetry = self.telemetry_reader.read()
@@ -185,27 +211,10 @@ class TelemetryLoop:
             # Add sample to buffer
             self.session_manager.add_sample(telemetry, timestamp=current_time)
 
-            # Poll opponents if enabled
-            if self.track_opponents and self.on_opponent_lap_complete:
-                try:
-                    opponents = self.telemetry_reader.get_all_vehicles()
-                    for opponent_telemetry in opponents:
-                        completed_laps = self.opponent_tracker.update_opponent(
-                            opponent_telemetry,
-                            timestamp=current_time
-                        )
-                        # Trigger callback for each completed lap
-                        for opponent_lap_data in completed_laps:
-                            self.on_opponent_lap_complete(opponent_lap_data)
-                except Exception as e:
-                    # Don't fail the main loop if opponent tracking has issues
-                    pass
-
             # Update status
             status['state'] = self.session_manager.state
             status['lap'] = self.session_manager.current_lap
             status['samples_buffered'] = len(self.session_manager.lap_samples)
-            status['opponents_tracked'] = self.opponent_tracker.get_opponent_count() if self.track_opponents else 0
 
         except Exception as e:
             self.session_manager.state = SessionState.ERROR

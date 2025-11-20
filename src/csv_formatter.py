@@ -32,7 +32,11 @@ class CSVFormatter:
             "Version",
             "Player",
             "TrackName",
-            "CarName",
+            "CarModel",  # Car make/model (e.g., "Cadillac V-Series.R")
+            "CarClass",  # Vehicle class (e.g., "Hypercar", "GTE", "GT3")
+            "Manufacturer",  # Manufacturer (e.g., "Cadillac")
+            "TeamName",  # Team name (e.g., "Action Express Racing")
+            "CarName",  # Team entry name (legacy, for backward compatibility)
             "SessionUTC",
             "LapTime [s]",
             "TrackLen [m]",
