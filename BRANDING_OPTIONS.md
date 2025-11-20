@@ -16,6 +16,103 @@
 
 ---
 
+## 🏆 BREAKTHROUGH CONCEPT: 1lap / OneLap
+
+**Status**: Top contender - minimal, philosophical, viral-ready
+
+### Why This is Genius
+
+✅ **Philosophy**: "One lap at a time" - perfect incremental improvement mindset
+✅ **Minimal**: Like 1Password, Onewheel - number + word pattern is memorable
+✅ **Viral hashtag**: "#1lap" or "my 1lap" - natural social sharing built-in
+✅ **Not limiting**: Works for any sim, any car, any track
+✅ **Action-oriented**: Focus on the lap, not the tool
+✅ **SaaS scalable**: "Upload your 1lap" / "Compare on 1lap" / "Browse 1laps"
+
+### Variations
+
+#### **1lap** ⭐⭐⭐ (PRIMARY CHOICE)
+- **Capture**: 1lap Capture (or just "1lap" - the app)
+- **Viewer**: 1lap Compare / 1lap Viewer
+- **Taglines**:
+  - "One lap at a time"
+  - "Your fastest lap starts here"
+  - "Compare. Improve. Repeat."
+- **Domain**: **1lap.gg** ⭐ (MUST HAVE)
+- **Pros**:
+  - Most minimal and modern
+  - Clean URLs (1lap.gg/compare, 1lap.gg/upload)
+  - Tech product vibe (1Password, 1Password, etc.)
+  - Hashtag-ready: #1lap
+- **Cons**:
+  - Some platforms don't allow numbers first
+  - Might need "OneLap" for legal entity
+- **Usage**:
+  - Product: "Download 1lap"
+  - Marketing: "Upload to 1lap.gg"
+  - Social: "Check out my 1lap"
+
+#### **OneLap** ⭐⭐
+- **Capture**: OneLap Capture
+- **Viewer**: OneLap Compare
+- **Domain**: onelap.gg, onelap.com
+- **Pros**:
+  - Better for company/legal name
+  - More traditional branding
+  - Reads naturally in sentences
+  - Trademark-able
+- **Cons**:
+  - Slightly longer
+  - Less modern than number version
+- **Best use**: Legal entity name while product is "1lap"
+
+#### **wonlap** ⭐
+- **Capture**: wonlap Capture
+- **Viewer**: wonlap Compare
+- **Domain**: wonlap.gg
+- **Pros**:
+  - Unique spelling = more available
+  - Tech startup vibe (wonolo, wework, etc.)
+  - Distinctive/memorable
+- **Cons**:
+  - Requires explanation ("won" = "one")
+  - Could be confusing initially
+  - Less obvious connection to racing
+
+### Recommended Branding Strategy
+
+**Product name**: **1lap**
+**Legal entity**: **OneLap Technologies** (or OneLap Inc.)
+**Primary domain**: **1lap.gg**
+**Marketing copy**: Mix both - "1lap by OneLap"
+
+**Component naming:**
+- Desktop app: **1lap** (captures by default)
+- Web viewer: **1lap Compare** or just "Compare" on 1lap.gg
+- Reference library: **1lap Library** or "Browse 1laps"
+
+**Social presence:**
+- Twitter/X: @1lap or @onelap (whichever available)
+- Discord: 1lap Community
+- YouTube: 1lap Racing
+
+### Viral Potential
+
+- "Just uploaded my 1lap to Spa"
+- "My 1lap vs. the reference lap"
+- "#1lap challenge - beat my time"
+- "Getting faster, one lap at a time"
+
+### Marketing Angles
+
+1. **Incremental improvement**: One lap at a time (not overwhelming)
+2. **Focus**: Just focus on this one lap
+3. **Comparison**: Your 1lap vs. theirs
+4. **Library**: Thousands of 1laps to learn from
+5. **Community**: Share your 1lap, get feedback
+
+---
+
 ## Category 1: Performance Coaching (Recommended)
 
 These names emphasize learning, improvement, and coaching.
