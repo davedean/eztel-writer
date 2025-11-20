@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+from src.mvp_format import SampleNormalizer
+
 
 @dataclass
 class OpponentLapData:
@@ -34,17 +36,24 @@ class OpponentTracker:
     - Filter by control type (remote players, AI, etc.)
     """
 
-    def __init__(self, track_remote_only: bool = True, track_ai: bool = False):
+    def __init__(
+        self,
+        track_remote_only: bool = True,
+        track_ai: bool = False,
+        normalizer: SampleNormalizer | None = None
+    ):
         """
         Initialize opponent tracker
 
         Args:
             track_remote_only: If True, only track remote players (default)
             track_ai: If True, also track AI opponents (default: False)
+            normalizer: Sample normalizer for converting raw telemetry to MVP format
         """
         self.opponents: Dict[str, Dict[str, Any]] = {}
         self.track_remote_only = track_remote_only
         self.track_ai = track_ai
+        self.normalizer = normalizer or SampleNormalizer()
 
     def update_opponent(
         self,
@@ -130,9 +139,10 @@ class OpponentTracker:
         # Update current lap
         opponent['current_lap'] = current_lap
 
-        # Add sample to buffer
+        # Add sample to buffer (normalize first, like SessionManager does)
         if current_lap > 0:
-            opponent['samples'].append(telemetry.copy())
+            normalized = self.normalizer.normalize(telemetry)
+            opponent['samples'].append(normalized)
 
         return completed_laps
 

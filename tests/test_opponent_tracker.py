@@ -259,8 +259,9 @@ class TestOpponentTracker:
 
         assert 'Alice' in tracker.opponents
         assert 'Bob' in tracker.opponents
-        assert tracker.opponents['Alice']['samples'][0]['speed'] == 150.0
-        assert tracker.opponents['Bob']['samples'][0]['speed'] == 160.0
+        # After normalization, field names are in MVP format
+        assert tracker.opponents['Alice']['samples'][0]['Speed [km/h]'] == 150.0
+        assert tracker.opponents['Bob']['samples'][0]['Speed [km/h]'] == 160.0
 
     def test_skip_non_tracked_control_types(self):
         """Test that non-tracked control types are skipped"""
@@ -309,3 +310,56 @@ class TestOpponentTracker:
         }, timestamp=2.0)
 
         assert tracker.get_opponent_count() == 2
+
+    def test_samples_are_normalized(self):
+        """Test that opponent samples are normalized to MVP format"""
+        tracker = OpponentTracker()
+
+        # Raw telemetry with various fields
+        raw_telemetry = {
+            'driver_name': 'Test Driver',
+            'lap': 1,
+            'lap_distance': 1000.0,
+            'lap_time': 10.0,
+            'speed': 200.0,  # km/h
+            'engine_rpm': 7500.0,
+            'throttle': 0.85,  # 0-1 range (should become 85%)
+            'brake': 0.0,
+            'steering': 0.125,  # Should become 12.5%
+            'gear': 5,
+            'position_x': 123.45,  # Correct field name for normalizer
+            'position_z': -101.23,
+            'track_length': 5000.0,
+            'control': 2,  # Remote player
+        }
+
+        tracker.update_opponent(raw_telemetry, timestamp=1.0)
+
+        # Get the stored sample
+        assert 'Test Driver' in tracker.opponents
+        samples = tracker.opponents['Test Driver']['samples']
+        assert len(samples) == 1
+
+        normalized = samples[0]
+
+        # Verify normalized MVP format field names
+        assert 'LapDistance [m]' in normalized
+        assert 'Speed [km/h]' in normalized
+        assert 'EngineRevs [rpm]' in normalized
+        assert 'ThrottlePercentage [%]' in normalized
+        assert 'BrakePercentage [%]' in normalized
+        assert 'Steer [%]' in normalized
+        assert 'Gear [int]' in normalized
+        assert 'X [m]' in normalized
+        assert 'Z [m]' in normalized
+
+        # Verify values are correctly transformed
+        assert normalized['LapDistance [m]'] == 1000.0
+        assert normalized['Speed [km/h]'] == 200.0
+        assert normalized['EngineRevs [rpm]'] == 7500.0
+        assert normalized['ThrottlePercentage [%]'] == 85.0  # 0.85 * 100
+        assert normalized['BrakePercentage [%]'] == 0.0
+        assert normalized['Steer [%]'] == 12.5  # 0.125 * 100
+        assert normalized['Gear [int]'] == 5
+        assert normalized['X [m]'] == 123.45
+        assert normalized['Z [m]'] == -101.23
