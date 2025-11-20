@@ -1,5 +1,15 @@
 # Bug: Player Lap Filename Format Inconsistency
 
+## Status: ✅ RESOLVED
+
+**Resolved:** 2025-11-20
+**Commit:** b1ddf34
+**Branch:** claude/fix-filename-bugs-01CLu94YJxeArb1fd83FLuPj
+
+**Solution:** Changed default filename format in `src/file_manager.py` from `{date}_{time}_` prefix to `{session_id}_` prefix. All player and opponent files now use consistent session_id-based naming.
+
+---
+
 ## Summary
 Player lap files and opponent lap files use inconsistent filename formats. Player files include a date/time prefix, while opponent files start with session_id. This makes it harder to group files from the same session and creates unnecessary inconsistency.
 

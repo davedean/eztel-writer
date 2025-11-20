@@ -292,6 +292,49 @@ git commit -m "descriptive message"
 gh pr create --draft
 ```
 
+### Bug Tracking Workflow
+
+**IMPORTANT**: When fixing bugs listed in the `bugs/` folder, always update the bug file to reflect the resolution.
+
+**When resolving a bug:**
+1. **Update the bug file** - Add a status section at the top:
+   ```markdown
+   ## Status: ✅ RESOLVED
+
+   **Resolved:** YYYY-MM-DD
+   **Commit:** <commit-hash>
+   **Branch:** <branch-name>
+
+   **Solution:** Brief description of how the bug was fixed.
+
+   ---
+   ```
+
+2. **Keep the original description** - Don't delete the bug details; they provide valuable context and history
+
+3. **Commit the bug file updates** - Include bug file updates in the same commit or a follow-up commit
+
+**Example workflow:**
+```bash
+# 1. Fix the bug
+# 2. Run tests
+pytest -v
+
+# 3. Get the commit hash
+git log --oneline -1
+
+# 4. Update the bug file with status
+# 5. Commit both code and bug documentation
+git add src/fixed_file.py bugs/bug_description.md
+git commit -m "Fix bug: description"
+```
+
+**Why this matters:**
+- Provides historical record of when and how bugs were fixed
+- Helps prevent duplicate work on already-resolved issues
+- Makes it easy to see which bugs are still open
+- Documents the solution for future reference
+
 ## Important Files & References
 
 ### Key Files

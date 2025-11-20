@@ -1,5 +1,15 @@
 # Bug: Opponent Lap Files Missing Lap Time in Filename
 
+## Status: ✅ RESOLVED
+
+**Resolved:** 2025-11-20
+**Commit:** b1ddf34
+**Branch:** claude/fix-filename-bugs-01CLu94YJxeArb1fd83FLuPj
+
+**Solution:** Changed opponent filename format in `tray_app.py` from `{session_id}_{track}_{car}_{driver}_fastest.csv` to `{session_id}_{track}_{car}_{driver}_lap{lap}_t{lap_time}s.csv`. Opponent files now show lap number and time in filename, matching player file format.
+
+---
+
 ## Summary
 Opponent lap files use a filename format that doesn't include the lap time, making it difficult to identify lap performance at a glance. The format should match player lap files which include `lap{lap}_t{lap_time}s` in the filename.
 
