@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw
 import pystray
 from pystray import MenuItem as Item
 from src.session_manager import SessionState
+from src.settings_ui import show_settings_dialog
 
 
 class TrayUI:
@@ -83,6 +84,7 @@ class TrayUI:
             ),
             Item('Open Output Folder', self.on_open_folder),
             pystray.Menu.SEPARATOR,
+            Item('Settings...', self.on_settings),
             Item('Check for Updates...', self.on_check_for_updates),
             pystray.Menu.SEPARATOR,
             Item('Quit', self.on_quit)
@@ -168,6 +170,14 @@ class TrayUI:
             subprocess.run(['open', output_dir])
         else:  # Linux
             subprocess.run(['xdg-open', output_dir])
+
+    def on_settings(self):
+        """Handle Settings menu click"""
+        # Show settings dialog (will block until closed)
+        changed = show_settings_dialog()
+
+        # Return True if settings were changed (for potential future use)
+        return changed
 
     def on_check_for_updates(self):
         """Handle Check for Updates menu click"""

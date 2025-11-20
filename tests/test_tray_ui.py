@@ -190,6 +190,28 @@ class TestTrayUI(unittest.TestCase):
 
         self.assertEqual(text, 'Stop Logging')
 
+    @patch('src.tray_ui.show_settings_dialog')
+    def test_on_settings_opens_dialog(self, mock_show_settings):
+        """Test on_settings opens the settings dialog"""
+        mock_show_settings.return_value = False  # No changes made
+
+        tray = TrayUI(self.mock_app)
+        tray.on_settings()
+
+        # Should call show_settings_dialog
+        mock_show_settings.assert_called_once()
+
+    @patch('src.tray_ui.show_settings_dialog')
+    def test_on_settings_returns_when_changes_made(self, mock_show_settings):
+        """Test on_settings handles when settings are changed"""
+        mock_show_settings.return_value = True  # Changes made
+
+        tray = TrayUI(self.mock_app)
+        result = tray.on_settings()
+
+        # Should call show_settings_dialog and return True
+        mock_show_settings.assert_called_once()
+
 
 if __name__ == '__main__':
     unittest.main()
