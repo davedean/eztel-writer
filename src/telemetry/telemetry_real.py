@@ -52,16 +52,15 @@ class RealTelemetryReader(TelemetryReaderInterface):
 
         # Initialize REST API client for vehicle metadata
         self.rest_api: Optional[LMURestAPI] = None
+        self._rest_api_checked = False  # Track if we've attempted to fetch data
         if REST_API_AVAILABLE and LMURestAPI:
             try:
                 self.rest_api = LMURestAPI()
-                if self.rest_api.is_available():
-                    # Fetch vehicle data on startup
-                    self.rest_api.fetch_vehicle_data()
+                # Try to fetch vehicle data if API is available
+                if self._try_fetch_vehicle_data():
                     print("[LMU REST API] Vehicle metadata loaded successfully")
                 else:
-                    print("[LMU REST API] API not available, will use shared memory only")
-                    self.rest_api = None
+                    print("[LMU REST API] API not available yet, will retry when needed")
             except Exception as e:
                 print(f"[LMU REST API] Error initializing: {e}")
                 self.rest_api = None
@@ -72,6 +71,41 @@ class RealTelemetryReader(TelemetryReaderInterface):
             return self.info.isSharedMemoryAvailable()
         except Exception:
             return False
+
+    def _try_fetch_vehicle_data(self) -> bool:
+        """
+        Try to fetch vehicle data from REST API
+
+        Returns:
+            True if data was fetched successfully, False otherwise
+        """
+        if not self.rest_api:
+            return False
+
+        try:
+            if self.rest_api.is_available():
+                data = self.rest_api.fetch_vehicle_data()
+                self._rest_api_checked = True
+                return len(data) > 0
+        except Exception:
+            pass
+
+        return False
+
+    def ensure_rest_api_data(self):
+        """
+        Ensure REST API vehicle data is loaded, retry if not yet fetched
+
+        This method should be called when vehicle metadata is needed.
+        It will retry fetching data if the initial attempt failed.
+        """
+        if not self.rest_api:
+            return
+
+        # If we haven't successfully fetched data yet, try again
+        if not self._rest_api_checked or not self.rest_api.vehicle_cache:
+            if self._try_fetch_vehicle_data():
+                print("[LMU REST API] Vehicle metadata loaded on retry")
 
     def read(self) -> Dict[str, Any]:
         """
@@ -333,6 +367,8 @@ class RealTelemetryReader(TelemetryReaderInterface):
                     vehicle_class_api = ''
 
                     if self.rest_api:
+                        # Ensure REST API data is loaded (retry if initial fetch failed)
+                        self.ensure_rest_api_data()
                         vehicle_meta = self.rest_api.lookup_vehicle(car_name)
                         if vehicle_meta:
                             car_model = vehicle_meta.get('car_model', '')

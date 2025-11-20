@@ -96,6 +96,10 @@ class TelemetryApp:
 
         # Enrich with REST API data (car model, manufacturer, class) if available
         if hasattr(self.telemetry_reader, 'rest_api') and self.telemetry_reader.rest_api:
+            # Ensure REST API data is loaded (retry if initial fetch failed)
+            if hasattr(self.telemetry_reader, 'ensure_rest_api_data'):
+                self.telemetry_reader.ensure_rest_api_data()
+
             car_name = session_info.get('car_name')
             if car_name:
                 vehicle_meta = self.telemetry_reader.rest_api.lookup_vehicle(car_name)
