@@ -5,3 +5,4 @@
 psutil>=5.9.0              # Process detection (both platforms)
 pystray>=0.19.0            # System tray/menu bar (both platforms)
 Pillow>=10.0.0             # Icon images for pystray (both platforms)
+requests>=2.31.0           # HTTP client for auto-update (GitHub API)

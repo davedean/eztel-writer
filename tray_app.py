@@ -32,6 +32,7 @@ from src.telemetry.telemetry_interface import get_telemetry_reader
 from src.settings_ui import SettingsConfig, show_settings_dialog
 from src.tray_ui import TrayUI
 from src.session_manager import SessionState
+from src.update_manager import UpdateManager
 
 
 class TrayTelemetryApp:
@@ -83,6 +84,17 @@ class TrayTelemetryApp:
         # Background thread for telemetry loop
         self.telemetry_thread = None
         self.running = False
+
+        # Initialize update manager
+        update_config = {
+            'check_on_startup': self.config.get('check_updates_on_startup', True),
+            'skipped_versions': self.config.get('skipped_update_versions', [])
+        }
+        self.update_manager = UpdateManager(update_config)
+
+        # Check for updates on startup (non-blocking)
+        if self.update_manager.should_check_for_updates():
+            self.update_manager.check_for_updates_async(self.on_update_checked)
 
     def on_lap_complete(self, lap_data, lap_summary):
         """
@@ -268,6 +280,39 @@ class TrayTelemetryApp:
 
             # Sleep for poll interval
             time.sleep(self.config['poll_interval'])
+
+    def on_update_checked(self, update_info):
+        """
+        Callback when update check completes
+
+        Args:
+            update_info: Update information dict or None if check failed
+        """
+        if update_info and update_info.get('available'):
+            print(f"[INFO] Update available: {update_info['latest_version']}")
+            # Handle update in main thread if tray is available
+            if hasattr(self, 'tray_ui') and self.tray_ui:
+                # Show notification
+                self.update_manager.show_notification(
+                    self.tray_ui.icon if hasattr(self.tray_ui, 'icon') else None,
+                    update_info['latest_version']
+                )
+
+    def check_for_updates_manual(self):
+        """Manually check for updates (called from menu)"""
+        print("[INFO] Checking for updates...")
+
+        def on_checked(update_info):
+            if update_info is None:
+                print("[INFO] Could not check for updates (network error)")
+            elif update_info.get('available'):
+                print(f"[INFO] Update available: {update_info['latest_version']}")
+                # Show dialog
+                self.update_manager.handle_update_available(update_info)
+            else:
+                print("[INFO] Already using the latest version")
+
+        self.update_manager.check_for_updates_async(on_checked)
 
     def start(self):
         """Start the application with system tray UI"""

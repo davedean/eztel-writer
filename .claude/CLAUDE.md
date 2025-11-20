@@ -4,14 +4,14 @@
 
 This is a background telemetry logger for Le Mans Ultimate (LMU) that automatically captures and exports telemetry data to CSV files. The project uses a **cross-platform development strategy**: develop on macOS with mocks, then test/deploy on Windows with real LMU data.
 
-**Current Status**: Phases 1-4 and 6 complete (core system fully functional, tested on Windows with live LMU), Phase 5 partially complete (Settings UI ✅, System Tray pending), Phase 7 in progress (executable built, final validation pending)
+**Current Status**: Phases 1-6 complete (core system fully functional, tested on Windows with live LMU, auto-update system implemented), Phase 7 in progress (executable built, final validation pending)
 
 ## Development Philosophy
 
 ### Test-Driven Development (TDD)
 - **ALWAYS write tests before code** when implementing new features
 - Tests should fail first, then write code to make them pass
-- Current coverage: **106/106 tests passing, 100% coverage of implemented modules**
+- Current coverage: **175/175 tests passing, 100% coverage of implemented modules** (includes 54 auto-update tests)
 - If tests can't pass after trying, ask user before modifying tests
 
 ### Cross-Platform Architecture
@@ -72,10 +72,36 @@ This is a background telemetry logger for Le Mans Ultimate (LMU) that automatica
    - GUI settings dialog using tkinter (cross-platform, built-in)
    - `SettingsConfig` - backend configuration management
    - `SettingsDialog` - GUI dialog for user settings
-   - Configuration: output directory, opponent tracking, poll rate
+   - Configuration: output directory, opponent tracking, poll rate, auto-update preferences
    - Persistence: saves/loads config.json
    - Validation: ensures settings are valid before saving
    - Command-line integration: `python example_app.py --settings`
+
+9. **Auto-Update System** ✅ **NEW** (2025-11-20)
+   - **Version Manager** (`src/version.py`) - Version comparison and validation
+   - **Update Checker** (`src/update_checker.py`) - GitHub releases API integration
+     - Check for new releases from GitHub
+     - Download .exe files with progress reporting
+     - SHA256 checksum verification
+     - HTTPS-only downloads for security
+   - **Update UI** (`src/update_ui.py`) - User interface components
+     - `UpdateDialog` - Tkinter dialog for update notifications
+     - `UpdateNotification` - System tray balloon notifications
+   - **Update Manager** (`src/update_manager.py`) - Orchestration layer
+     - Background update checking on startup
+     - Handle user responses (install, skip, remind later)
+     - Track skipped versions
+     - Launch external updater script
+   - **External Updater** (`updater.py`) - Standalone script for .exe replacement
+     - Waits for app to exit
+     - Backs up old .exe
+     - Replaces with new .exe
+     - Relaunches app
+   - **Integration**:
+     - `tray_app.py` - Auto-check on startup, "Check for Updates" menu
+     - Settings UI checkbox for "Check for updates on startup"
+   - **54 comprehensive tests** covering all update components
+   - See `AUTO_UPDATE_IMPLEMENTATION_PLAN.md` for complete details
 
 ### Integration Example
 - `example_app.py` - Complete working application
@@ -116,7 +142,11 @@ pytest --cov=src --cov-report=html
 - `test_example_app_integration.py` - 4 tests
 - `test_telemetry_real.py` - 2 tests
 - `test_tray_ui.py` - 15 tests (NEW - System Tray UI)
-- **Total: 121 tests passing**
+- `test_version.py` - 11 tests (NEW - Auto-update version management)
+- `test_update_checker.py` - 16 tests (NEW - Auto-update GitHub integration)
+- `test_update_ui.py` - 12 tests (NEW - Auto-update UI components)
+- `test_update_manager.py` - 15 tests (NEW - Auto-update orchestration)
+- **Total: 175 tests passing** (including 54 auto-update tests)
 
 ## Phase Status
 

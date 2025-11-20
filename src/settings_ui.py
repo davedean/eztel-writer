@@ -191,6 +191,7 @@ class SettingsDialog:
         self.poll_hz_var = tk.IntVar(value=int(self.config.interval_to_hz(self.config.get('poll_interval'))))
         self.track_opponents_var = tk.BooleanVar(value=self.config.get('track_opponents'))
         self.track_opponent_ai_var = tk.BooleanVar(value=self.config.get('track_opponent_ai'))
+        self.check_updates_on_startup_var = tk.BooleanVar(value=self.config.get('check_updates_on_startup', True))
 
         self._build_ui()
 
@@ -266,6 +267,20 @@ class SettingsDialog:
                                value=hz).pack(side=self.tk.LEFT, padx=5)
         row += 1
 
+        # ===== Auto-Update Settings Section =====
+        self.ttk.Separator(main_frame, orient='horizontal').grid(
+            row=row, column=0, columnspan=3, sticky=(self.tk.W, self.tk.E), pady=15)
+        row += 1
+
+        self.ttk.Label(main_frame, text="Auto-Update Settings:", font=('TkDefaultFont', 10, 'bold')).grid(
+            row=row, column=0, columnspan=3, sticky=self.tk.W, pady=(0, 5))
+        row += 1
+
+        self.ttk.Checkbutton(main_frame, text="Check for updates on startup",
+                            variable=self.check_updates_on_startup_var).grid(
+            row=row, column=0, columnspan=3, sticky=self.tk.W, padx=(20, 0))
+        row += 1
+
         # ===== Buttons Section =====
         self.ttk.Separator(main_frame, orient='horizontal').grid(
             row=row, column=0, columnspan=3, sticky=(self.tk.W, self.tk.E), pady=15)
@@ -298,6 +313,7 @@ class SettingsDialog:
         self.config.set('poll_interval', self.config.hz_to_interval(self.poll_hz_var.get()))
         self.config.set('track_opponents', self.track_opponents_var.get())
         self.config.set('track_opponent_ai', self.track_opponent_ai_var.get())
+        self.config.set('check_updates_on_startup', self.check_updates_on_startup_var.get())
 
         # Validate
         is_valid, error_msg = self.config.validate()

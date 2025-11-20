@@ -83,6 +83,8 @@ class TrayUI:
             ),
             Item('Open Output Folder', self.on_open_folder),
             pystray.Menu.SEPARATOR,
+            Item('Check for Updates...', self.on_check_for_updates),
+            pystray.Menu.SEPARATOR,
             Item('Quit', self.on_quit)
         )
 
@@ -166,6 +168,11 @@ class TrayUI:
             subprocess.run(['open', output_dir])
         else:  # Linux
             subprocess.run(['xdg-open', output_dir])
+
+    def on_check_for_updates(self):
+        """Handle Check for Updates menu click"""
+        if hasattr(self.app, 'check_for_updates_manual'):
+            self.app.check_for_updates_manual()
 
     def on_quit(self):
         """Handle Quit menu click"""

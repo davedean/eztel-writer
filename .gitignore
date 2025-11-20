@@ -33,6 +33,7 @@ config.json
 output/
 logs/
 telemetry_output/
+updater.log
 
 # Distribution / packaging
 build/
