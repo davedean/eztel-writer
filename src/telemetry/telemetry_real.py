@@ -323,7 +323,8 @@ class RealTelemetryReader(TelemetryReaderInterface):
                         'position': vehicle_scor.mPlace,
                         'lap': lap,
                         'lap_distance': lap_distance,
-                        'lap_time': lap_time,
+                        'lap_time': lap_time,  # mTimeIntoLap (current lap in progress)
+                        'last_lap_time': vehicle_scor.mLastLapTime if hasattr(vehicle_scor, 'mLastLapTime') else 0.0,  # Last completed lap
                         'speed': speed,
                         'rpm': vehicle_tele.mEngineRPM,
                         'gear': vehicle_tele.mGear,

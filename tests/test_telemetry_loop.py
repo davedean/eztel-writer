@@ -410,9 +410,9 @@ class TestTelemetryLoop:
         # Opponent telemetry: opponent completes a lap
         opponent_samples = [
             # First call: opponent mid-lap
-            [{'driver_name': 'Opponent1', 'lap': 1, 'lap_distance': 1500.0, 'lap_time': 90.0, 'speed': 200.0, 'control': 2}],
+            [{'driver_name': 'Opponent1', 'lap': 1, 'lap_distance': 1500.0, 'lap_time': 90.0, 'speed': 200.0, 'control': 2, 'last_lap_time': 0.0}],
             # Second call: opponent completes lap 1, starts lap 2
-            [{'driver_name': 'Opponent1', 'lap': 2, 'lap_distance': 10.0, 'lap_time': 1.0, 'speed': 100.0, 'control': 2}],
+            [{'driver_name': 'Opponent1', 'lap': 2, 'lap_distance': 10.0, 'lap_time': 1.0, 'last_lap_time': 95.0, 'speed': 100.0, 'control': 2}],
         ]
         reader.get_all_vehicles.side_effect = opponent_samples
 
@@ -474,9 +474,9 @@ class TestTelemetryLoop:
 
         # Opponent telemetry: opponent completes lap while player is suspended
         opponent_samples = [
-            [{'driver_name': 'Opponent1', 'lap': 1, 'lap_distance': 1500.0, 'lap_time': 90.0, 'speed': 200.0, 'control': 2}],
-            [{'driver_name': 'Opponent1', 'lap': 1, 'lap_distance': 2500.0, 'lap_time': 95.0, 'speed': 200.0, 'control': 2}],
-            [{'driver_name': 'Opponent1', 'lap': 2, 'lap_distance': 10.0, 'lap_time': 1.0, 'speed': 100.0, 'control': 2}],  # Lap complete!
+            [{'driver_name': 'Opponent1', 'lap': 1, 'lap_distance': 1500.0, 'lap_time': 90.0, 'speed': 200.0, 'control': 2, 'last_lap_time': 0.0}],
+            [{'driver_name': 'Opponent1', 'lap': 1, 'lap_distance': 2500.0, 'lap_time': 95.0, 'speed': 200.0, 'control': 2, 'last_lap_time': 0.0}],
+            [{'driver_name': 'Opponent1', 'lap': 2, 'lap_distance': 10.0, 'lap_time': 1.0, 'last_lap_time': 98.0, 'speed': 100.0, 'control': 2}],  # Lap complete!
         ]
         reader.get_all_vehicles.side_effect = opponent_samples
 
