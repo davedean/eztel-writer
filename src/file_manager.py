@@ -24,13 +24,13 @@ class FileManager:
         Args:
             config: Configuration dictionary with optional keys:
                 - output_dir: Base directory for output files (default: "./telemetry_output")
-                - filename_format: Format string for filenames (default: "{date}_{time}_{track}_{car}_{driver}_lap{lap}_t{lap_time}s.csv")
+                - filename_format: Format string for filenames (default: "{session_id}_{track}_{car}_{driver}_lap{lap}_t{lap_time}s.csv")
         """
         self.config = config or {}
         self.output_dir = Path(self.config.get('output_dir', './telemetry_output'))
         self.filename_format = self.config.get(
             'filename_format',
-            '{date}_{time}_{track}_{car}_{driver}_lap{lap}_t{lap_time}s.csv'
+            '{session_id}_{track}_{car}_{driver}_lap{lap}_t{lap_time}s.csv'
         )
 
         # Create output directory if it doesn't exist

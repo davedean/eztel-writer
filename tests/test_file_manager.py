@@ -88,9 +88,11 @@ class TestFileManager:
         filepath = manager.save_lap(csv_content, lap_summary, session_info)
 
         filename = Path(filepath).name
-        # Should include date and time
-        assert '2025-11-18' in filename
-        assert '13-52' in filename
+        # Should include session_id (not separate date and time)
+        assert '2025111812345' in filename
+        # Should NOT include separate date and time
+        assert '2025-11-18' not in filename
+        assert '13-52' not in filename
         # Should include track, car, and driver (lowercase with hyphens)
         assert 'algarve-international-circuit' in filename
         assert 'bmw-m4-gt3-evo' in filename
@@ -98,8 +100,6 @@ class TestFileManager:
         # Should include lap number and lap time
         assert 'lap5' in filename
         assert 't140s' in filename
-        # Should NOT include redundant session_id
-        assert '2025111812345' not in filename
         # Fields should be separated by underscores
         assert filename.endswith('.csv')
         # Verify overall structure with underscores between fields
@@ -219,25 +219,25 @@ class TestFileManager:
         assert len(manager.list_saved_laps()) == 0
 
     def test_get_session_laps(self, temp_dir):
-        """Should filter laps by date/time prefix (session identifier)"""
+        """Should filter laps by session_id prefix"""
         manager = FileManager({'output_dir': str(temp_dir)})
 
-        # Save laps from two different sessions (different times)
-        session1_time = datetime(2025, 11, 18, 13, 52, 0)
-        session2_time = datetime(2025, 11, 18, 15, 30, 0)
+        # Save laps from two different sessions (different session IDs)
+        session1_id = '20251118135200'
+        session2_id = '20251118153000'
 
         for i in range(1, 4):
-            manager.save_lap("test", {'lap': i}, build_session_info(date=session1_time))
+            manager.save_lap("test", {'lap': i}, build_session_info(session_id=session1_id))
 
         for i in range(1, 3):
-            manager.save_lap("test", {'lap': i}, build_session_info(date=session2_time))
+            manager.save_lap("test", {'lap': i}, build_session_info(session_id=session2_id))
 
-        # Get laps for session1 (filter by date_time prefix)
-        session1_laps = manager.get_session_laps('2025-11-18_13-52')
+        # Get laps for session1 (filter by session_id prefix)
+        session1_laps = manager.get_session_laps('20251118135200')
         assert len(session1_laps) == 3
 
-        # Get laps for session2 (filter by date_time prefix)
-        session2_laps = manager.get_session_laps('2025-11-18_15-30')
+        # Get laps for session2 (filter by session_id prefix)
+        session2_laps = manager.get_session_laps('20251118153000')
         assert len(session2_laps) == 2
 
     def test_get_output_directory(self, temp_dir):

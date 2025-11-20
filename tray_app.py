@@ -264,7 +264,7 @@ class TrayTelemetryApp:
                 'lap_time': opponent_lap_data.lap_time,
             }
 
-            opponent_filename_format = '{session_id}_{track}_{car}_{driver}_fastest.csv'
+            opponent_filename_format = '{session_id}_{track}_{car}_{driver}_lap{lap}_t{lap_time}s.csv'
 
             filepath = self.file_manager.save_lap(
                 csv_content=csv_content,
