@@ -155,16 +155,21 @@ jobs:
           - Smart file naming with track, car, driver, lap time
 
           ### Installation
-          1. Install https://github.com/TheIronWolfModding/rF2SharedMemoryMapPlugin
+          1. **Install LMU Runtime Dependencies** (Required!)
+            - Navigate to: `LMU/support/runtimes/`
+            - Install all runtime installers (especially `vc_redist.x64.exe`)
+            - Restart computer (recommended)
+          2. Install https://github.com/TheIronWolfModding/rF2SharedMemoryMapPlugin
             - This is included by "Simhub" and other popular tools, you may have it already
-          2. Download `LMU_Telemetry_Logger.exe`
-          3. Run the executable (no installation required)
-          4. Launch LMU and start driving
-          5. CSV files saved to `./telemetry_output/`
+          3. Download `LMU_Telemetry_Logger.exe`
+          4. Run the executable (no installation required)
+          5. Launch LMU and start driving
+          6. CSV files saved to `./telemetry_output/`
 
           ### Requirements
           - Windows 10/11
           - Le Mans Ultimate installed
+          - **Visual C++ Runtimes** (from LMU's support/runtimes folder)
 
           ### Documentation
           - See USER_GUIDE.md for detailed instructions

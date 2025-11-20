@@ -13,6 +13,14 @@ This guide explains how to build the LMU Telemetry Logger executable on Windows 
 
 3. **Le Mans Ultimate** (for testing with real telemetry)
 
+4. **LMU Runtime Dependencies** (Required!)
+   - Navigate to: `C:\Program Files (x86)\Steam\steamapps\common\Le Mans Ultimate\support\runtimes\`
+   - Install **all** runtime installers:
+     - `vc_redist.x64.exe` (Visual C++ Redistributable) - **Required!**
+     - Any other installers present
+   - Restart your computer (recommended)
+   - **Note**: If you've already played LMU, these may already be installed
+
 ## Build Steps
 
 ### 1. Clone the Repository
@@ -137,9 +145,17 @@ self.telemetry_loop = TelemetryLoop({
 - Try cleaning: `rmdir /s /q build dist`
 - Rebuild: `build.bat`
 
-### No telemetry data
+### No telemetry data or "Shared memory not available"
+- **Install LMU runtimes** (see Prerequisites #4 above) - most common cause!
 - Ensure rF2SharedMemoryMapPlugin is installed and enabled in LMU
 - Check LMU settings for shared memory plugin
+- Restart your computer after installing runtimes
+
+### DLL load errors or "Failed to load shared memory library"
+- **Install LMU runtimes** from `LMU/support/runtimes/` (see Prerequisites #4)
+- Ensure you installed the x64 version of Visual C++ Redistributable
+- Restart your computer after installation
+- Verify LMU itself runs properly (if LMU doesn't work, the logger won't either)
 
 ## Testing Opponent Tracking
 

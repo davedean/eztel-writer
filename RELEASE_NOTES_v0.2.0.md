@@ -51,6 +51,22 @@ TelemetryLoop({
 
 ### Windows Users (Production)
 
+#### Prerequisites (Important!)
+
+Before running the telemetry logger, you must install the LMU runtime dependencies:
+
+1. Navigate to your LMU installation folder:
+   - Default: `C:\Program Files (x86)\Steam\steamapps\common\Le Mans Ultimate\`
+2. Open the `support\runtimes\` folder
+3. Install **all** runtime installers:
+   - `vc_redist.x64.exe` (Visual C++ Redistributable) - **Required!**
+   - Any other installers present
+4. Restart your computer (recommended)
+
+**Note**: If you've already run LMU successfully, these may already be installed.
+
+#### Running the Logger
+
 1. Download the release and extract
 2. Run `LMU_Telemetry_Logger.exe`
 3. Start Le Mans Ultimate with multiplayer session
