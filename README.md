@@ -4,16 +4,21 @@ A background telemetry logger for Le Mans Ultimate that automatically captures a
 
 ## Project Status
 
-🎉 **v0.2.0 Released** - Opponent Lap Tracking Now Available!
+🎉 **v0.3.0 Released** - System Tray UI & Auto-Update!
 
-### Latest Release: v0.2.0 (2025-11-20)
-- ✅ **NEW**: Opponent lap tracking for multiplayer sessions
-- ✅ Fastest lap only per opponent (storage optimized)
-- ✅ Configurable: remote players + optional AI tracking
-- ✅ Consistent file naming with track, car, driver, lap time
-- ✅ 91/91 unit tests passing
+### Latest Release: v0.3.0 (2025-11-20)
+- ✅ **NEW**: System Tray UI with visual state indicators
+- ✅ **NEW**: Settings GUI dialog for easy configuration
+- ✅ **NEW**: Auto-Update system with one-click installation
+- ✅ **NEW**: Windows Installer with custom directory selection
+- ✅ Bug fixes: Terminal window, opponent laps, filename consistency
+- ✅ 175/175 unit tests passing (100% coverage)
 
 ### Completed Features
+- ✅ **System Tray UI** - Runs in background with right-click menu
+- ✅ **Settings Dialog** - GUI configuration (output dir, opponents, poll rate)
+- ✅ **Auto-Update** - Automatic updates from GitHub with checksum verification
+- ✅ **Windows Installer** - Professional installation experience
 - ✅ Automatic player lap capture
 - ✅ Opponent lap capture (multiplayer)
 - ✅ Mock telemetry system for macOS development
@@ -26,41 +31,71 @@ A background telemetry logger for Le Mans Ultimate that automatically captures a
 - ✅ Cross-platform development (macOS → Windows)
 - ✅ Windows testing with real LMU telemetry
 
-### Testing Status
-- ⏳ Windows multiplayer testing pending (you can help!)
+### Phase Status
+- ✅ Phase 1-4: Core telemetry system (Complete)
+- ✅ Phase 5: System Tray UI & User Controls (Complete)
+- ✅ Phase 6: Windows Testing & Auto-Update (Complete)
+- ✅ Phase 7: Distribution & Installer (Complete)
+- 🚀 **Feature Complete!**
 
 ## 🚀 Quick Start (Windows)
 
-### Download & Build v0.2.0
+### Option 1: Windows Installer (Recommended)
 
-1. **Download**: Get the latest release from [GitHub Releases](https://github.com/davedean/eztel-writer/releases/tag/v0.2.0)
+1. **Download**: Get `LMU_Telemetry_Logger_Setup.exe` from [GitHub Releases](https://github.com/davedean/eztel-writer/releases/tag/v0.3.0)
+2. **Install**: Run the installer and follow the wizard
+3. **Launch**: Start from Start Menu or Desktop shortcut
+4. **Configure**: Right-click tray icon → Settings
+5. **Use**: Launch LMU and drive - telemetry is captured automatically!
 
-2. **Build**: Follow [WINDOWS_BUILD_INSTRUCTIONS.md](WINDOWS_BUILD_INSTRUCTIONS.md) for step-by-step guide
+### Option 2: Portable Executable
 
-3. **Quick Build**:
+1. **Download**: Get `LMU_Telemetry_Logger.zip` from [GitHub Releases](https://github.com/davedean/eztel-writer/releases/tag/v0.3.0)
+2. **Extract**: Unzip to any folder
+3. **Run**: Double-click `LMU_Telemetry_Logger.exe`
+
+### Option 3: Build from Source
+
+1. **Clone**:
    ```cmd
-   git clone --branch v0.2.0 https://github.com/davedean/eztel-writer.git
+   git clone --branch v0.3.0 https://github.com/davedean/eztel-writer.git
    cd eztel-writer
+   ```
+
+2. **Setup**:
+   ```cmd
    python -m venv venv
    venv\Scripts\activate
    pip install -r requirements.txt -r requirements-windows.txt
    pip install pyinstaller
+   ```
+
+3. **Build**:
+   ```cmd
    build.bat
    ```
 
-4. **Run**: `dist\LMU_Telemetry_Logger.exe`
+4. **Build Installer** (optional):
+   ```cmd
+   build_installer.bat
+   ```
 
-5. **Test**: Join a multiplayer session in LMU and complete laps!
+For detailed build instructions, see [WINDOWS_BUILD_INSTRUCTIONS.md](WINDOWS_BUILD_INSTRUCTIONS.md)
 
 **Output Location**: `./telemetry_output/*.csv`
 
-## Features (Planned)
+See [RELEASE_NOTES_v0.3.0.md](RELEASE_NOTES_v0.3.0.md) for complete feature list and usage instructions.
 
-- 🎯 **Zero-Config** - Single `.exe` file, no installation required
-- 🔄 **Auto-Detection** - Automatically starts/stops with LMU
-- 🖥️ **Background Service** - Runs silently in system tray
-- 📊 **CSV Export** - Emits LMUTelemetry v2 (metadata + 12 channels)
-- 🍎 **Cross-Platform Dev** - Develop on macOS, deploy on Windows
+## Key Features
+
+- ✅ **System Tray UI** - Runs in background with visual state indicators
+- ✅ **Auto-Detection** - Automatically starts/stops with LMU
+- ✅ **Settings GUI** - Easy configuration via dialog
+- ✅ **Auto-Update** - One-click updates from GitHub
+- ✅ **CSV Export** - LMUTelemetry v3 format (metadata + 10 channels)
+- ✅ **Opponent Tracking** - Capture opponent laps in multiplayer
+- ✅ **Windows Installer** - Professional installation experience
+- ✅ **Cross-Platform Dev** - Develop on macOS, deploy on Windows
 
 ## Development Setup (macOS)
 
