@@ -51,16 +51,14 @@ class RealTelemetryReader(TelemetryReaderInterface):
         self.info = SimInfoAPI()
 
         # Initialize REST API client for vehicle metadata
+        # Note: We defer the actual data fetch until it's needed (lazy loading)
+        # to avoid blocking the app startup. Data will be fetched on first use.
         self.rest_api: Optional[LMURestAPI] = None
         self._rest_api_checked = False  # Track if we've attempted to fetch data
         if REST_API_AVAILABLE and LMURestAPI:
             try:
                 self.rest_api = LMURestAPI()
-                # Try to fetch vehicle data if API is available
-                if self._try_fetch_vehicle_data():
-                    print("[LMU REST API] Vehicle metadata loaded successfully")
-                else:
-                    print("[LMU REST API] API not available yet, will retry when needed")
+                print("[LMU REST API] Client initialized (data will be fetched when needed)")
             except Exception as e:
                 print(f"[LMU REST API] Error initializing: {e}")
                 self.rest_api = None
