@@ -81,8 +81,11 @@ jobs:
 
         Write-Output "Found Inno Setup at: $isccPath"
 
-        # Run Inno Setup compiler
-        & $isccPath installer\LMU_Telemetry_Logger_Setup.iss
+        $version = "${{ steps.get_version.outputs.version }}"
+        Write-Output "Building installer with version: $version"
+
+        # Run Inno Setup compiler with version parameter
+        & $isccPath "/DMyAppVersion=$version" installer\LMU_Telemetry_Logger_Setup.iss
 
         if ($LASTEXITCODE -ne 0) {
           Write-Error "Inno Setup compilation failed with exit code: $LASTEXITCODE"
@@ -90,9 +93,10 @@ jobs:
         }
 
         # Verify installer was created (using dynamic version)
-        $installerPath = "installer\output\LMU_Telemetry_Logger_Setup_v${{ steps.get_version.outputs.version }}.exe"
+        $installerPath = "installer\output\LMU_Telemetry_Logger_Setup_v$version.exe"
         if (!(Test-Path $installerPath)) {
           Write-Error "Installer was not created at: $installerPath"
+          Write-Output "Contents of installer\output:"
           Get-ChildItem "installer\output\" -ErrorAction SilentlyContinue
           exit 1
         }

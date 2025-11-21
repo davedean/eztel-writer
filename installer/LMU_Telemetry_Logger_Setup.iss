@@ -1,8 +1,12 @@
 ; LMU Telemetry Logger - Inno Setup Installer Script
 ; This script creates a Windows installer for the LMU Telemetry Logger
 
+; Read version from command line if provided, otherwise use default
+#ifndef MyAppVersion
+  #define MyAppVersion "0.3.0"
+#endif
+
 #define MyAppName "LMU Telemetry Logger"
-#define MyAppVersion "0.3.0"
 #define MyAppPublisher "LMU Telemetry Team"
 #define MyAppURL "https://github.com/davedean/eztel-writer"
 #define MyAppExeName "LMU_Telemetry_Logger.exe"
