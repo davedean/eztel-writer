@@ -200,20 +200,36 @@ class UpdateManager:
             if getattr(sys, 'frozen', False):
                 # Running as .exe
                 current_exe = Path(sys.executable)
+
+                # When frozen, updater should be bundled as updater.exe
+                # PyInstaller puts it in the same directory as the main .exe
+                app_dir = current_exe.parent
+                updater_exe = app_dir / "updater.exe"
+
+                if not updater_exe.exists():
+                    logger.error(f"Updater executable not found at: {updater_exe}")
+                    return False
+
+                logger.info("Launching updater executable...")
+                # Launch updater.exe directly (no Python interpreter needed)
+                subprocess.Popen([
+                    str(updater_exe),
+                    str(current_exe),
+                    str(new_exe)
+                ], creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0)
             else:
                 # Running as script (for testing)
                 current_exe = Path(__file__).parent.parent / "dist" / "LMU_Telemetry_Logger.exe"
+                updater_script = Path(__file__).parent.parent / "updater.py"
 
-            # Launch updater script
-            updater_script = Path(__file__).parent.parent / "updater.py"
-
-            logger.info("Launching updater script...")
-            subprocess.Popen([
-                sys.executable,
-                str(updater_script),
-                str(current_exe),
-                str(new_exe)
-            ])
+                logger.info("Launching updater script with Python...")
+                # Use Python interpreter to run updater.py
+                subprocess.Popen([
+                    sys.executable,
+                    str(updater_script),
+                    str(current_exe),
+                    str(new_exe)
+                ])
 
             # Exit application (updater will replace and restart)
             logger.info("Exiting for update...")

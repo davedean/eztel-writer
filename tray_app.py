@@ -339,17 +339,48 @@ class TrayTelemetryApp:
 
     def check_for_updates_manual(self):
         """Manually check for updates (called from menu)"""
+        import tkinter as tk
+        from tkinter import messagebox
+
         logger.info("Checking for updates...")
 
         def on_checked(update_info):
             if update_info is None:
-                logger.info("Could not check for updates (network error)")
+                logger.warning("Could not check for updates (network error or GitHub API unavailable)")
+                # Show user-friendly error dialog
+                try:
+                    root = tk.Tk()
+                    root.withdraw()  # Hide the main window
+                    messagebox.showwarning(
+                        "Update Check Failed",
+                        "Could not check for updates.\n\n"
+                        "Possible causes:\n"
+                        "• No internet connection\n"
+                        "• GitHub API is unavailable\n"
+                        "• Network timeout\n\n"
+                        "Please try again later or check your internet connection."
+                    )
+                    root.destroy()
+                except Exception as e:
+                    logger.error(f"Could not show error dialog: {e}")
             elif update_info.get('available'):
                 logger.info(f"Update available: {update_info['latest_version']}")
                 # Show dialog
                 self.update_manager.handle_update_available(update_info)
             else:
                 logger.info("Already using the latest version")
+                # Show confirmation that check was successful
+                try:
+                    root = tk.Tk()
+                    root.withdraw()
+                    messagebox.showinfo(
+                        "No Updates Available",
+                        f"You are already using the latest version.\n\n"
+                        f"Current version: {update_info['current_version']}"
+                    )
+                    root.destroy()
+                except Exception as e:
+                    logger.error(f"Could not show info dialog: {e}")
 
         self.update_manager.check_for_updates_async(on_checked)
 

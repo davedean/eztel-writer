@@ -118,23 +118,26 @@ class UpdateDialog:
         install_btn = ttk.Button(
             button_frame,
             text="Download & Install",
-            command=self.on_install
+            command=self.on_install,
+            width=20
         )
-        install_btn.pack(side=tk.LEFT, padx=5)
+        install_btn.pack(side=tk.LEFT, padx=5, pady=5, ipady=10)
 
         later_btn = ttk.Button(
             button_frame,
             text="Remind Me Later",
-            command=self.on_later
+            command=self.on_later,
+            width=20
         )
-        later_btn.pack(side=tk.LEFT, padx=5)
+        later_btn.pack(side=tk.LEFT, padx=5, pady=5, ipady=10)
 
         skip_btn = ttk.Button(
             button_frame,
             text="Skip This Version",
-            command=self.on_skip
+            command=self.on_skip,
+            width=20
         )
-        skip_btn.pack(side=tk.LEFT, padx=5)
+        skip_btn.pack(side=tk.LEFT, padx=5, pady=5, ipady=10)
 
         # Center window on screen
         self.root.update_idletasks()
