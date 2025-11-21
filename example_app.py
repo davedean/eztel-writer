@@ -28,6 +28,7 @@ from src.file_manager import FileManager
 from src.mvp_format import build_metadata_block, detect_sector_boundaries
 from src.telemetry.telemetry_interface import get_telemetry_reader
 from src.settings_ui import SettingsConfig, show_settings_dialog
+from src.app_paths import get_config_file_path, migrate_config_if_needed
 
 
 class TelemetryApp:
@@ -366,23 +367,29 @@ Examples:
     )
     parser.add_argument(
         '--config',
-        default='config.json',
-        help='Path to config file (default: config.json)'
+        default=None,
+        help='Path to config file (default: platform-specific app data directory)'
     )
 
     args = parser.parse_args()
 
+    # Migrate config from old location if needed
+    migrate_config_if_needed()
+
+    # Use platform-appropriate config path if not specified
+    config_path = args.config if args.config else str(get_config_file_path())
+
     # Show settings dialog if requested
     if args.settings:
         print("Opening settings dialog...")
-        saved = show_settings_dialog(args.config)
+        saved = show_settings_dialog(config_path)
         if not saved:
             print("Settings cancelled. Exiting.")
             sys.exit(0)
         print("Settings saved!\n")
 
     # Start application
-    app = TelemetryApp(config_file=args.config)
+    app = TelemetryApp(config_file=config_path)
     app.start()
 
 

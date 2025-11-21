@@ -49,8 +49,9 @@ If you see "Windows protected your PC", this is normal for unsigned installers:
 
 **Files:**
 - Application executable: `C:\Program Files\LMU Telemetry Logger\LMU_Telemetry_Logger.exe`
-- Configuration file: `config.json`
-- User guide: `USER_GUIDE.md`
+- Configuration file: `%LOCALAPPDATA%\LMU Telemetry Logger\config.json`
+- Log file: `%LOCALAPPDATA%\LMU Telemetry Logger\telemetry_logger.log`
+- User guide: `C:\Program Files\LMU Telemetry Logger\USER_GUIDE.md`
 
 **Shortcuts:**
 - Start Menu → LMU Telemetry Logger (launch app)
@@ -60,6 +61,10 @@ If you see "Windows protected your PC", this is normal for unsigned installers:
 
 **Directories:**
 - Default output: `Documents\LMU Telemetry` (where CSV files are saved)
+- Application data: `%LOCALAPPDATA%\LMU Telemetry Logger` (config and logs)
+  - Typically: `C:\Users\<username>\AppData\Local\LMU Telemetry Logger\`
+
+**Note**: Configuration and log files are stored in your user profile's AppData folder to avoid Windows permission issues with Program Files.
 
 ### Manual Installation (Advanced Users)
 
