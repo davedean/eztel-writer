@@ -54,7 +54,7 @@ jobs:
 
     - name: Build executable with PyInstaller
       run: |
-        pyinstaller --onedir `
+        pyinstaller --onedir --noconsole `
           --name "LMU_Telemetry_Logger" `
           --icon=NONE `
           --add-data "src;src" `

@@ -14,8 +14,8 @@ if exist dist rmdir /s /q dist
 
 REM Build main executable
 echo.
-echo Building main application with PyInstaller...
-pyinstaller --onedir --noconsole ^
+echo Building with PyInstaller...
+python -m PyInstaller --onedir --noconsole ^
     --name "LMU_Telemetry_Logger" ^
     --icon=NONE ^
     --add-data "src;src" ^
