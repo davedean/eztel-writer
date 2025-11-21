@@ -37,6 +37,21 @@ jobs:
       run: |
         pytest -v
 
+    - name: Extract version from tag or commit
+      id: get_version
+      shell: bash
+      run: |
+        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          # Extract version from tag (e.g., v0.3.0 -> 0.3.0)
+          VERSION=${GITHUB_REF_NAME#v}
+        else
+          # For PRs or non-tag pushes, read from src/__init__.py
+          # Use sed for better cross-platform compatibility
+          VERSION=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' src/__init__.py)
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Detected version: $VERSION"
+
     - name: Build executable with PyInstaller
       run: |
         pyinstaller --onedir `
@@ -74,13 +89,15 @@ jobs:
           exit 1
         }
 
-        # Verify installer was created
-        if (!(Test-Path "installer\output\LMU_Telemetry_Logger_Setup_v1.0.0.exe")) {
-          Write-Error "Installer was not created!"
+        # Verify installer was created (using dynamic version)
+        $installerPath = "installer\output\LMU_Telemetry_Logger_Setup_v${{ steps.get_version.outputs.version }}.exe"
+        if (!(Test-Path $installerPath)) {
+          Write-Error "Installer was not created at: $installerPath"
+          Get-ChildItem "installer\output\" -ErrorAction SilentlyContinue
           exit 1
         }
 
-        Write-Output "Installer created successfully!"
+        Write-Output "Installer created successfully at: $installerPath"
 
     - name: Create release package
       shell: pwsh
@@ -88,8 +105,9 @@ jobs:
         # Create release directory
         New-Item -ItemType Directory -Force -Path release
 
-        # Copy the installer (primary distribution method)
-        Copy-Item "installer\output\LMU_Telemetry_Logger_Setup_v1.0.0.exe" "release\"
+        # Copy the installer (primary distribution method) - using dynamic version
+        $installerFile = "installer\output\LMU_Telemetry_Logger_Setup_v${{ steps.get_version.outputs.version }}.exe"
+        Copy-Item $installerFile "release\"
 
         # Create a zip of the standalone executable bundle for advanced users
         Compress-Archive -Path "dist\LMU_Telemetry_Logger\*" -DestinationPath "release\LMU_Telemetry_Logger_Standalone.zip" -Force
@@ -102,9 +120,9 @@ jobs:
 
         # Generate version info based on trigger type
         if ("${{ github.event_name }}" -eq "pull_request") {
-          $version = "LMU Telemetry Logger PR #${{ github.event.pull_request.number }} ($(git rev-parse --short HEAD))`nBuild from: ${{ github.head_ref }}"
+          $version = "LMU Telemetry Logger PR #${{ github.event.pull_request.number }} ($(git rev-parse --short HEAD))`nBuild from: ${{ github.head_ref }}`nVersion: ${{ steps.get_version.outputs.version }}"
         } else {
-          $version = "LMU Telemetry Logger ${{ github.ref_name }}"
+          $version = "LMU Telemetry Logger ${{ github.ref_name }}`nVersion: ${{ steps.get_version.outputs.version }}"
         }
         Set-Content -Path "release\VERSION.txt" -Value $version
 
@@ -125,9 +143,12 @@ jobs:
           const runId = context.runId;
           const repo = context.repo;
 
+          const version = '${{ steps.get_version.outputs.version }}';
           const comment = `## ✅ Windows Build Complete
 
           The Windows executable and installer have been built and are ready for testing!
+
+          **Version:** ${version}
 
           ### Download
           📦 [Download **${artifactName}**](https://github.com/${repo.owner}/${repo.repo}/actions/runs/${runId})
@@ -135,7 +156,7 @@ jobs:
           Click the link above, scroll down to "Artifacts" section, and download the build.
 
           ### What's included
-          - \`LMU_Telemetry_Logger_Setup_v1.0.0.exe\` - **Windows installer (recommended)**
+          - \`LMU_Telemetry_Logger_Setup_v${version}.exe\` - **Windows installer (recommended)**
           - \`LMU_Telemetry_Logger_Standalone.zip\` - Standalone executable bundle (for advanced users)
           - \`README.md\`, \`USER_GUIDE.md\`, \`CHANGELOG.md\`
           - \`VERSION.txt\` - Build information
@@ -145,7 +166,7 @@ jobs:
           - [ ] Run installer on Windows
           - [ ] Verify Start Menu shortcuts created
           - [ ] Test custom output directory selection
-          - [ ] Test upgrade scenario (install v1.0.0, then newer version)
+          - [ ] Test upgrade scenario (if applicable)
           - [ ] Test uninstall with data preservation options
 
           **Functionality:**
@@ -189,7 +210,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          installer/output/LMU_Telemetry_Logger_Setup_v1.0.0.exe
+          installer/output/LMU_Telemetry_Logger_Setup_v${{ steps.get_version.outputs.version }}.exe
           release/LMU_Telemetry_Logger_Standalone.zip
           README.md
           USER_GUIDE.md
@@ -204,7 +225,7 @@ jobs:
           - ✅ System tray interface with start/stop/pause controls
           - ✅ Professional Windows installer with shortcuts
           - ✅ Opponent lap tracking (fastest lap only)
-          - ✅ MVP format output (12-channel LMUTelemetry v2)
+          - ✅ MVP format output (10-channel LMUTelemetry v3)
           - ✅ ~43Hz capture rate (optimal)
           - ✅ File size: ~1 MB per lap
           - ✅ Smart file naming with track, car, driver, lap time
@@ -212,7 +233,7 @@ jobs:
           ### Installation (Recommended)
 
           **Option 1: Installer (Easy)**
-          1. Download `LMU_Telemetry_Logger_Setup_v1.0.0.exe`
+          1. Download `LMU_Telemetry_Logger_Setup_v${{ steps.get_version.outputs.version }}.exe`
           2. Run the installer and follow the wizard
           3. Choose your telemetry output directory (default: `Documents\LMU Telemetry`)
           4. Launch from Start Menu
@@ -240,11 +261,7 @@ jobs:
           - **Visual C++ Runtimes** (from LMU's support/runtimes folder)
 
           ### What's New
-          - 🎉 Professional Windows installer
-          - 🎉 System tray UI with icon state indicators
-          - 🎉 Start Menu and Desktop shortcuts
-          - 🎉 Configurable output directory
-          - 🎉 Auto-upgrade with data preservation
+          See the release notes or CHANGELOG.md for details on what's new in this version.
 
           ### Documentation
           - See `USER_GUIDE.md` for detailed instructions

@@ -2,7 +2,7 @@
 ; This script creates a Windows installer for the LMU Telemetry Logger
 
 #define MyAppName "LMU Telemetry Logger"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "0.3.0"
 #define MyAppPublisher "LMU Telemetry Team"
 #define MyAppURL "https://github.com/davedean/eztel-writer"
 #define MyAppExeName "LMU_Telemetry_Logger.exe"
