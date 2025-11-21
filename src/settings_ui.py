@@ -18,6 +18,7 @@ class SettingsConfig:
         'poll_interval': 0.01,  # 100Hz
         'track_opponents': True,
         'track_opponent_ai': False,
+        'check_updates_on_startup': True,
     }
 
     def __init__(self, config_file: str = 'config.json'):
@@ -48,16 +49,17 @@ class SettingsConfig:
             # No config file, use defaults
             return self.DEFAULT_CONFIG.copy()
 
-    def get(self, key: str) -> Any:
+    def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value
 
         Args:
             key: Configuration key
+            default: Default value if key not found
 
         Returns:
-            Configuration value
+            Configuration value, or default if key not found
         """
-        return self.config.get(key)
+        return self.config.get(key, default)
 
     def set(self, key: str, value: Any) -> None:
         """Set configuration value
@@ -345,6 +347,7 @@ class SettingsDialog:
         self.poll_hz_var.set(int(self.config.interval_to_hz(self.config.get('poll_interval'))))
         self.track_opponents_var.set(self.config.get('track_opponents'))
         self.track_opponent_ai_var.set(self.config.get('track_opponent_ai'))
+        self.check_updates_on_startup_var.set(self.config.get('check_updates_on_startup'))
 
     def show(self) -> bool:
         """Show the settings dialog (modal)
