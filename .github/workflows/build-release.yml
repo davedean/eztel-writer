@@ -55,7 +55,7 @@ jobs:
     - name: Build executable with PyInstaller
       run: |
         pyinstaller --onedir --noconsole `
-          --name "LMU_Telemetry_Logger" `
+          --name "1Lap" `
           --icon=NONE `
           --add-data "src;src" `
           --hidden-import psutil `
@@ -85,7 +85,7 @@ jobs:
         Write-Output "Building installer with version: $version"
 
         # Run Inno Setup compiler with version parameter
-        & $isccPath "/DMyAppVersion=$version" installer\LMU_Telemetry_Logger_Setup.iss
+        & $isccPath "/DMyAppVersion=$version" installer\1Lap_Setup.iss
 
         if ($LASTEXITCODE -ne 0) {
           Write-Error "Inno Setup compilation failed with exit code: $LASTEXITCODE"
@@ -93,7 +93,7 @@ jobs:
         }
 
         # Verify installer was created (using dynamic version)
-        $installerPath = "installer\output\LMU_Telemetry_Logger_Setup_v$version.exe"
+        $installerPath = "installer\output\1Lap_Setup_v$version.exe"
         if (!(Test-Path $installerPath)) {
           Write-Error "Installer was not created at: $installerPath"
           Write-Output "Contents of installer\output:"
@@ -110,11 +110,11 @@ jobs:
         New-Item -ItemType Directory -Force -Path release
 
         # Copy the installer (primary distribution method) - using dynamic version
-        $installerFile = "installer\output\LMU_Telemetry_Logger_Setup_v${{ steps.get_version.outputs.version }}.exe"
+        $installerFile = "installer\output\1Lap_Setup_v${{ steps.get_version.outputs.version }}.exe"
         Copy-Item $installerFile "release\"
 
         # Create a zip of the standalone executable bundle for advanced users
-        Compress-Archive -Path "dist\LMU_Telemetry_Logger\*" -DestinationPath "release\LMU_Telemetry_Logger_Standalone.zip" -Force
+        Compress-Archive -Path "dist\1Lap\*" -DestinationPath "release\1Lap_Standalone.zip" -Force
 
         # Copy documentation
         Copy-Item "README.md" "release\"
@@ -124,9 +124,9 @@ jobs:
 
         # Generate version info based on trigger type
         if ("${{ github.event_name }}" -eq "pull_request") {
-          $version = "LMU Telemetry Logger PR #${{ github.event.pull_request.number }} ($(git rev-parse --short HEAD))`nBuild from: ${{ github.head_ref }}`nVersion: ${{ steps.get_version.outputs.version }}"
+          $version = "1Lap PR #${{ github.event.pull_request.number }} ($(git rev-parse --short HEAD))`nBuild from: ${{ github.head_ref }}`nVersion: ${{ steps.get_version.outputs.version }}"
         } else {
-          $version = "LMU Telemetry Logger ${{ github.ref_name }}`nVersion: ${{ steps.get_version.outputs.version }}"
+          $version = "1Lap ${{ github.ref_name }}`nVersion: ${{ steps.get_version.outputs.version }}"
         }
         Set-Content -Path "release\VERSION.txt" -Value $version
 
@@ -135,7 +135,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: LMU_Telemetry_Logger-windows-${{ github.event_name == 'pull_request' && format('PR{0}', github.event.pull_request.number) || github.ref_name }}
+        name: 1Lap-windows-${{ github.event_name == 'pull_request' && format('PR{0}', github.event.pull_request.number) || github.ref_name }}
         path: release/
 
     - name: Comment on PR with build artifact
@@ -143,7 +143,7 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          const artifactName = `LMU_Telemetry_Logger-windows-PR${{ github.event.pull_request.number }}`;
+          const artifactName = `1Lap-windows-PR${{ github.event.pull_request.number }}`;
           const runId = context.runId;
           const repo = context.repo;
 
@@ -160,8 +160,8 @@ jobs:
           Click the link above, scroll down to "Artifacts" section, and download the build.
 
           ### What's included
-          - \`LMU_Telemetry_Logger_Setup_v${version}.exe\` - **Windows installer (recommended)**
-          - \`LMU_Telemetry_Logger_Standalone.zip\` - Standalone executable bundle (for advanced users)
+          - \`1Lap_Setup_v${version}.exe\` - **Windows installer (recommended)**
+          - \`1Lap_Standalone.zip\` - Standalone executable bundle (for advanced users)
           - \`README.md\`, \`USER_GUIDE.md\`, \`CHANGELOG.md\`
           - \`VERSION.txt\` - Build information
 
@@ -214,15 +214,15 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          installer/output/LMU_Telemetry_Logger_Setup_v${{ steps.get_version.outputs.version }}.exe
-          release/LMU_Telemetry_Logger_Standalone.zip
+          installer/output/1Lap_Setup_v${{ steps.get_version.outputs.version }}.exe
+          release/1Lap_Standalone.zip
           README.md
           USER_GUIDE.md
           CHANGELOG.md
           WINDOWS_BUILD_INSTRUCTIONS.md
         body_path: ${{ steps.release_notes.outputs.body_file }}
         body: |
-          ## LMU Telemetry Logger ${{ github.ref_name }}
+          ## 1Lap ${{ github.ref_name }}
 
           ### Features
           - ✅ Automatic telemetry capture from Le Mans Ultimate (player + opponents)
@@ -237,16 +237,16 @@ jobs:
           ### Installation (Recommended)
 
           **Option 1: Installer (Easy)**
-          1. Download `LMU_Telemetry_Logger_Setup_v${{ steps.get_version.outputs.version }}.exe`
+          1. Download `1Lap_Setup_v${{ steps.get_version.outputs.version }}.exe`
           2. Run the installer and follow the wizard
-          3. Choose your telemetry output directory (default: `Documents\LMU Telemetry`)
+          3. Choose your telemetry output directory (default: `Documents\1Lap Telemetry`)
           4. Launch from Start Menu
           5. Access system tray icon for controls
 
           **Option 2: Standalone Executable (Advanced)**
-          1. Download `LMU_Telemetry_Logger_Standalone.zip`
+          1. Download `1Lap_Standalone.zip`
           2. Extract the zip file to a folder of your choice
-          3. Run `LMU_Telemetry_Logger.exe` from the extracted folder
+          3. Run `1Lap.exe` from the extracted folder
           4. CSV files saved to `./telemetry_output/`
 
           ### Prerequisites
