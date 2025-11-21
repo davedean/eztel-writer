@@ -1,4 +1,4 @@
-# LMU Telemetry Logger - User Guide
+# 1Lap - User Guide
 
 ## What is this?
 
@@ -19,7 +19,7 @@ This is a background telemetry logger for **Le Mans Ultimate (LMU)** that automa
 ### Using the Installer (Recommended)
 
 1. **Download the installer:**
-   - Download `LMU_Telemetry_Logger_Setup_v1.0.0.exe` from the latest release
+   - Download `1Lap_Setup_v1.0.0.exe` from the latest release
    - Size: ~8-10 MB
 
 2. **Run the installer:**
@@ -28,8 +28,8 @@ This is a background telemetry logger for **Le Mans Ultimate (LMU)** that automa
    - Follow the installation wizard
 
 3. **Choose your settings:**
-   - **Installation Location**: Default is `C:\Program Files\LMU Telemetry Logger`
-   - **Telemetry Output Directory**: Default is `Documents\LMU Telemetry`
+   - **Installation Location**: Default is `C:\Program Files\1Lap`
+   - **Telemetry Output Directory**: Default is `Documents\1Lap Telemetry`
      - You can choose a different location if desired
    - **Optional**: Create desktop shortcut
    - **Optional**: Start with Windows
@@ -48,21 +48,21 @@ If you see "Windows protected your PC", this is normal for unsigned installers:
 ### What Gets Installed
 
 **Files:**
-- Application executable: `C:\Program Files\LMU Telemetry Logger\LMU_Telemetry_Logger.exe`
-- Configuration file: `%LOCALAPPDATA%\LMU Telemetry Logger\config.json`
-- Log file: `%LOCALAPPDATA%\LMU Telemetry Logger\telemetry_logger.log`
-- User guide: `C:\Program Files\LMU Telemetry Logger\USER_GUIDE.md`
+- Application executable: `C:\Program Files\1Lap\1Lap.exe`
+- Configuration file: `%LOCALAPPDATA%\1Lap\config.json`
+- Log file: `%LOCALAPPDATA%\1Lap\telemetry_logger.log`
+- User guide: `C:\Program Files\1Lap\USER_GUIDE.md`
 
 **Shortcuts:**
-- Start Menu → LMU Telemetry Logger (launch app)
+- Start Menu → 1Lap (launch app)
 - Start Menu → Open Output Folder (quick access to telemetry files)
 - Start Menu → User Guide
 - Desktop shortcut (if selected during installation)
 
 **Directories:**
-- Default output: `Documents\LMU Telemetry` (where CSV files are saved)
-- Application data: `%LOCALAPPDATA%\LMU Telemetry Logger` (config and logs)
-  - Typically: `C:\Users\<username>\AppData\Local\LMU Telemetry Logger\`
+- Default output: `Documents\1Lap Telemetry` (where CSV files are saved)
+- Application data: `%LOCALAPPDATA%\1Lap` (config and logs)
+  - Typically: `C:\Users\<username>\AppData\Local\1Lap\`
 
 **Note**: Configuration and log files are stored in your user profile's AppData folder to avoid Windows permission issues with Program Files.
 
@@ -72,7 +72,7 @@ If you prefer not to use the installer:
 
 1. Download the standalone executable bundle
 2. Extract to a folder of your choice
-3. Run `LMU_Telemetry_Logger.exe` directly
+3. Run `1Lap.exe` directly
 4. CSV files will be saved to `telemetry_output/` in the same directory
 
 ### Upgrading
@@ -91,12 +91,12 @@ To remove the application:
 
 **Option 1: Windows Settings**
 1. Open Windows Settings → Apps → Installed apps
-2. Find "LMU Telemetry Logger"
+2. Find "1Lap"
 3. Click the three dots → Uninstall
 4. Choose whether to keep or delete your telemetry data
 
 **Option 2: Start Menu**
-1. Start Menu → LMU Telemetry Logger → Uninstall
+1. Start Menu → 1Lap → Uninstall
 2. Follow the uninstall wizard
 
 **Note:** You can choose to keep your telemetry data and configuration when uninstalling, which is useful if you plan to reinstall later.
@@ -126,7 +126,7 @@ To remove the application:
 
 ## Quick Start
 
-### 1. Enable LMU Telemetry Plugin (First Time Only)
+### 1. Enable 1Lap Telemetry Plugin (First Time Only)
 
 ⚠️ **Important**: The rF2SharedMemoryMapPlugin is already installed with LMU, but you need to enable it once.
 
@@ -153,16 +153,16 @@ To remove the application:
 ### 2. Run the Logger
 
 **If installed with the installer:**
-1. Launch from Start Menu: **LMU Telemetry Logger**
+1. Launch from Start Menu: **1Lap**
 2. The app will appear in your system tray (bottom-right corner, near the clock)
 3. Look for the gray/yellow/green icon
 4. **Start LMU** and load into a practice session
 5. **Drive your laps** - the logger will automatically detect LMU and capture data
-6. **Check the output** - CSV files are saved to `Documents\LMU Telemetry` (or your chosen location)
+6. **Check the output** - CSV files are saved to `Documents\1Lap Telemetry` (or your chosen location)
 
 **If running the standalone executable:**
 1. **Start LMU** and load into a practice session
-2. **Run `LMU_Telemetry_Logger.exe`**
+2. **Run `1Lap.exe`**
 3. You'll see a system tray icon (or console window for older versions)
 4. **Drive your laps** - the logger will automatically capture data
 5. **Check the output** - CSV files are saved to the output directory

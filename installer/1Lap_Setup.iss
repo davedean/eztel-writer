@@ -1,15 +1,15 @@
-; LMU Telemetry Logger - Inno Setup Installer Script
-; This script creates a Windows installer for the LMU Telemetry Logger
+; 1Lap - Inno Setup Installer Script
+; This script creates a Windows installer for 1Lap
 
 ; Read version from command line if provided, otherwise use default
 #ifndef MyAppVersion
   #define MyAppVersion "0.3.1"
 #endif
 
-#define MyAppName "LMU Telemetry Logger"
-#define MyAppPublisher "LMU Telemetry Team"
+#define MyAppName "1Lap"
+#define MyAppPublisher "1Lap Team"
 #define MyAppURL "https://github.com/davedean/eztel-writer"
-#define MyAppExeName "LMU_Telemetry_Logger.exe"
+#define MyAppExeName "1Lap.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -28,7 +28,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 ; Output configuration
 OutputDir=output
-OutputBaseFilename=LMU_Telemetry_Logger_Setup_v{#MyAppVersion}
+OutputBaseFilename=1Lap_Setup_v{#MyAppVersion}
 Compression=lzma2/ultra64
 SolidCompression=yes
 ; Architecture
@@ -50,9 +50,9 @@ Name: "autostart"; Description: "Start with Windows"; GroupDescription: "Startup
 
 [Files]
 ; Main executable (from dist folder after PyInstaller build)
-Source: "..\dist\LMU_Telemetry_Logger\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\1Lap\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 ; All other files from the PyInstaller bundle
-Source: "..\dist\LMU_Telemetry_Logger\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\1Lap\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Documentation
 Source: "..\USER_GUIDE.md"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: LICENSE file commented out until it exists
@@ -63,12 +63,12 @@ Source: "config_default.json"; DestDir: "{app}"; DestName: "config.json"; Flags:
 [Dirs]
 ; Create default output directory in user's Documents folder
 ; This will be created with proper permissions for the user
-Name: "{userdocs}\LMU Telemetry"; Permissions: users-modify
+Name: "{userdocs}\1Lap Telemetry"; Permissions: users-modify
 
 [Icons]
 ; Start Menu shortcuts
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
-Name: "{group}\Open Output Folder"; Filename: "{userdocs}\LMU Telemetry"
+Name: "{group}\Open Output Folder"; Filename: "{userdocs}\1Lap Telemetry"
 Name: "{group}\User Guide"; Filename: "{app}\USER_GUIDE.md"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 ; Optional desktop shortcut
@@ -132,10 +132,10 @@ begin
     if RegQueryStringValue(HKCU, 'Software\{#MyAppName}', 'OutputDir', ExistingOutputDir) then
       OutputDirPage.Values[0] := ExistingOutputDir
     else
-      OutputDirPage.Values[0] := ExpandConstant('{userdocs}\LMU Telemetry');
+      OutputDirPage.Values[0] := ExpandConstant('{userdocs}\1Lap Telemetry');
   end
   else
-    OutputDirPage.Values[0] := ExpandConstant('{userdocs}\LMU Telemetry');
+    OutputDirPage.Values[0] := ExpandConstant('{userdocs}\1Lap Telemetry');
 end;
 
 // Called when "Next" button is clicked

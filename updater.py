@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""External updater script for LMU Telemetry Logger
+"""External updater script for 1Lap
 
 This script handles replacing the running .exe with a new version.
 It must be run as a separate process, not packaged in the main .exe.
@@ -208,7 +208,7 @@ def cleanup_temp_files(temp_dir: Path):
 def main():
     """Main updater function."""
     logger.info("=" * 60)
-    logger.info("LMU Telemetry Logger Updater")
+    logger.info("1Lap Updater")
     logger.info("=" * 60)
 
     # Parse command line arguments

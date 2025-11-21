@@ -1,6 +1,6 @@
 @echo off
 REM =============================================================================
-REM LMU Telemetry Logger - Complete Build Script
+REM 1Lap - Complete Build Script
 REM =============================================================================
 REM This script builds both the PyInstaller executable and the Inno Setup installer
 REM
@@ -38,7 +38,7 @@ if "%1"=="--help" (
 )
 
 echo =============================================================================
-echo LMU Telemetry Logger - Complete Build Process
+echo 1Lap - Complete Build Process
 echo =============================================================================
 echo.
 
@@ -75,16 +75,16 @@ REM ============================================================================
 echo [Step 2/3] Verifying PyInstaller output...
 echo.
 
-if not exist "dist\LMU_Telemetry_Logger\LMU_Telemetry_Logger.exe" (
+if not exist "dist\1Lap\1Lap.exe" (
     echo ERROR: PyInstaller executable not found!
-    echo Expected location: dist\LMU_Telemetry_Logger\LMU_Telemetry_Logger.exe
+    echo Expected location: dist\1Lap\1Lap.exe
     echo.
     echo Please run build.bat first to create the executable.
     pause
     exit /b 1
 )
 
-echo Found: dist\LMU_Telemetry_Logger\LMU_Telemetry_Logger.exe
+echo Found: dist\1Lap\1Lap.exe
 echo Verification complete!
 echo.
 
@@ -96,7 +96,7 @@ if %BUILD_INSTALLER%==0 (
     echo [Step 3/3] Skipping installer build (--exe-only mode)
     echo.
     echo Build complete! Executable is ready at:
-    echo dist\LMU_Telemetry_Logger\LMU_Telemetry_Logger.exe
+    echo dist\1Lap\1Lap.exe
     echo.
     pause
     exit /b 0
@@ -134,7 +134,7 @@ echo.
 
 REM Run Inno Setup compiler
 echo Compiling installer script...
-"%INNO_SETUP_PATH%" "installer\LMU_Telemetry_Logger_Setup.iss"
+"%INNO_SETUP_PATH%" "installer\1Lap_Setup.iss"
 
 if errorlevel 1 (
     echo.
@@ -158,7 +158,7 @@ echo Build Complete!
 echo =============================================================================
 echo.
 echo Installer created successfully:
-for %%f in (installer\output\LMU_Telemetry_Logger_Setup_*.exe) do (
+for %%f in (installer\output\1Lap_Setup_*.exe) do (
     echo   %%f
     set INSTALLER_SIZE=%%~zf
     set /a INSTALLER_SIZE_MB=!INSTALLER_SIZE! / 1048576

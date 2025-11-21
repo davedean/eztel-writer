@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-System Tray Application for LMU Telemetry Logger
+System Tray Application for 1Lap
 
 This application runs the telemetry logger with a system tray icon instead
 of as a command-line application.
@@ -48,9 +48,9 @@ def setup_logging():
     - Both file and console output (console only if not running as .exe)
 
     Location:
-    - Windows: %LOCALAPPDATA%\\LMU Telemetry Logger\\telemetry_logger.log
-    - macOS: ~/Library/Application Support/LMU Telemetry Logger/telemetry_logger.log
-    - Linux: ~/.local/share/lmu-telemetry-logger/telemetry_logger.log
+    - Windows: %LOCALAPPDATA%\\1Lap\\telemetry_logger.log
+    - macOS: ~/Library/Application Support/1Lap/telemetry_logger.log
+    - Linux: ~/.local/share/1lap/telemetry_logger.log
     """
     log_file = get_log_file_path()
 
@@ -387,7 +387,7 @@ class TrayTelemetryApp:
     def start(self):
         """Start the application with system tray UI"""
         logger.info("=" * 60)
-        logger.info("LMU Telemetry Logger - System Tray Application")
+        logger.info("1Lap - System Tray Application")
         logger.info("=" * 60)
         logger.info(f"Target process: {self.config['target_process']}")
         logger.info(f"Output directory: {self.config['output_dir']}")
@@ -435,7 +435,7 @@ def main():
     """Main entry point"""
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='LMU Telemetry Logger - System Tray Application',
+        description='1Lap - System Tray Application',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
