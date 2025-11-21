@@ -1,6 +1,6 @@
-# LMU Telemetry Logger - Installer
+# 1Lap - Installer
 
-This directory contains the files needed to build a Windows installer for the LMU Telemetry Logger.
+This directory contains the files needed to build a Windows installer for the 1Lap.
 
 ## Overview
 
@@ -39,10 +39,10 @@ build_installer.bat
 ```
 
 This will:
-1. Run PyInstaller to create `dist\LMU_Telemetry_Logger\`
+1. Run PyInstaller to create `dist\1Lap\`
 2. Verify the executable was created
 3. Run Inno Setup to create the installer
-4. Output: `installer\output\LMU_Telemetry_Logger_Setup_v1.0.0.exe`
+4. Output: `installer\output\1Lap_Setup_v1.0.0.exe`
 
 ### Option 2: Build Only Executable
 
@@ -63,7 +63,7 @@ build.bat
 If you already have a built executable and just want to rebuild the installer:
 
 ```batch
-"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\LMU_Telemetry_Logger_Setup.iss
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\1Lap_Setup.iss
 ```
 
 ## File Structure
@@ -71,18 +71,18 @@ If you already have a built executable and just want to rebuild the installer:
 ```
 installer/
 ├── README.md                           # This file
-├── LMU_Telemetry_Logger_Setup.iss      # Inno Setup script (main installer configuration)
+├── 1Lap_Setup.iss      # Inno Setup script (main installer configuration)
 ├── config_default.json                 # Default configuration template
 └── output/                             # Generated installers output here (gitignored)
-    └── LMU_Telemetry_Logger_Setup_v1.0.0.exe
+    └── 1Lap_Setup_v1.0.0.exe
 ```
 
 ## Configuration Files
 
-### LMU_Telemetry_Logger_Setup.iss
+### 1Lap_Setup.iss
 
 This is the main Inno Setup script that defines:
-- Installation directory (default: `C:\Program Files\LMU Telemetry Logger`)
+- Installation directory (default: `C:\Program Files\1Lap`)
 - Files to include (executable, docs, config)
 - Shortcuts to create (Start Menu, optional Desktop)
 - Registry entries for Windows integration
@@ -111,8 +111,8 @@ During installation, the user can customize the output directory, and the instal
 ### What the Installer Does
 
 **Files:**
-- Installs executable to `C:\Program Files\LMU Telemetry Logger\`
-- Creates default output directory in `Documents\LMU Telemetry`
+- Installs executable to `C:\Program Files\1Lap\`
+- Creates default output directory in `Documents\1Lap Telemetry`
 - Installs `USER_GUIDE.md` for user reference
 - Creates `config.json` (preserves existing on upgrade)
 
@@ -163,20 +163,20 @@ When a user uninstalls:
    ```batch
    build.bat
    ```
-   This creates: `dist\LMU_Telemetry_Logger\LMU_Telemetry_Logger.exe`
+   This creates: `dist\1Lap\1Lap.exe`
 
 2. **Verify the executable works:**
    ```batch
-   dist\LMU_Telemetry_Logger\LMU_Telemetry_Logger.exe --help
+   dist\1Lap\1Lap.exe --help
    ```
 
 3. **Build the installer:**
    ```batch
-   "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\LMU_Telemetry_Logger_Setup.iss
+   "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\1Lap_Setup.iss
    ```
 
 4. **Find the installer:**
-   - Location: `installer\output\LMU_Telemetry_Logger_Setup_v1.0.0.exe`
+   - Location: `installer\output\1Lap_Setup_v1.0.0.exe`
    - Size: ~8-10 MB (compressed)
 
 ### Automated Build
@@ -195,7 +195,7 @@ This runs all steps automatically and verifies everything.
 
 1. **Fresh Installation:**
    ```batch
-   installer\output\LMU_Telemetry_Logger_Setup_v1.0.0.exe
+   installer\output\1Lap_Setup_v1.0.0.exe
    ```
    - Follow the wizard
    - Verify shortcuts created
@@ -209,7 +209,7 @@ This runs all steps automatically and verifies everything.
    - Verify config and data preserved
 
 3. **Uninstall:**
-   - Open Windows Settings → Apps → LMU Telemetry Logger → Uninstall
+   - Open Windows Settings → Apps → 1Lap → Uninstall
    - Test both "keep data" and "delete data" options
    - Verify clean removal
 
@@ -217,40 +217,40 @@ This runs all steps automatically and verifies everything.
 
 ```batch
 # Silent install to default location
-LMU_Telemetry_Logger_Setup_v1.0.0.exe /SILENT
+1Lap_Setup_v1.0.0.exe /SILENT
 
 # Silent install to custom location
-LMU_Telemetry_Logger_Setup_v1.0.0.exe /SILENT /DIR="C:\CustomPath"
+1Lap_Setup_v1.0.0.exe /SILENT /DIR="C:\CustomPath"
 
 # Very silent (no UI at all)
-LMU_Telemetry_Logger_Setup_v1.0.0.exe /VERYSILENT /DIR="C:\CustomPath"
+1Lap_Setup_v1.0.0.exe /VERYSILENT /DIR="C:\CustomPath"
 
 # Silent uninstall
-"C:\Program Files\LMU Telemetry Logger\unins000.exe" /SILENT
+"C:\Program Files\1Lap\unins000.exe" /SILENT
 ```
 
 ## Customizing the Installer
 
 ### Changing the Version
 
-Edit `LMU_Telemetry_Logger_Setup.iss`:
+Edit `1Lap_Setup.iss`:
 
 ```pascal
 #define MyAppVersion "1.1.0"  ; Change this line
 ```
 
 This updates:
-- Installer filename: `LMU_Telemetry_Logger_Setup_v1.1.0.exe`
+- Installer filename: `1Lap_Setup_v1.1.0.exe`
 - Version in Windows "Programs and Features"
 - Version stored in registry
 
 ### Adding/Removing Files
 
-Edit the `[Files]` section in `LMU_Telemetry_Logger_Setup.iss`:
+Edit the `[Files]` section in `1Lap_Setup.iss`:
 
 ```pascal
 [Files]
-Source: "..\dist\LMU_Telemetry_Logger\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "..\dist\1Lap\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 Source: "..\USER_GUIDE.md"; DestDir: "{app}"; Flags: ignoreversion
 ; Add more files here
 ```
@@ -262,7 +262,7 @@ Edit `config_default.json` to change the defaults installed with the app.
 ### Adding a License File
 
 1. Create `LICENSE` file in project root
-2. Uncomment in `LMU_Telemetry_Logger_Setup.iss`:
+2. Uncomment in `1Lap_Setup.iss`:
    ```pascal
    LicenseFile=..\LICENSE
    ```
@@ -275,7 +275,7 @@ Edit `config_default.json` to change the defaults installed with the app.
 
 ### Error: "PyInstaller executable not found"
 
-**Problem:** `dist\LMU_Telemetry_Logger\LMU_Telemetry_Logger.exe` doesn't exist
+**Problem:** `dist\1Lap\1Lap.exe` doesn't exist
 
 **Solution:**
 ```batch
@@ -291,7 +291,7 @@ build.bat
 2. Verify installation path matches script
 3. Or set path manually:
    ```batch
-   "C:\Path\To\ISCC.exe" installer\LMU_Telemetry_Logger_Setup.iss
+   "C:\Path\To\ISCC.exe" installer\1Lap_Setup.iss
    ```
 
 ### Error: "Error opening file for reading"
@@ -308,7 +308,7 @@ build.bat
 **Problem:** Installer file size is unexpectedly large
 
 **Solution:**
-- Check PyInstaller bundle size: `dir dist\LMU_Telemetry_Logger`
+- Check PyInstaller bundle size: `dir dist\1Lap`
 - Verify no unnecessary files included
 - Compression setting: Ensure using `lzma2/ultra64`
 
@@ -327,12 +327,12 @@ Once the installer is built and tested:
 
 1. **Upload to GitHub Releases:**
    ```bash
-   gh release create v1.0.0 installer\output\LMU_Telemetry_Logger_Setup_v1.0.0.exe
+   gh release create v1.0.0 installer\output\1Lap_Setup_v1.0.0.exe
    ```
 
 2. **Generate SHA256 checksum** (for security):
    ```batch
-   certutil -hashfile installer\output\LMU_Telemetry_Logger_Setup_v1.0.0.exe SHA256
+   certutil -hashfile installer\output\1Lap_Setup_v1.0.0.exe SHA256
    ```
 
 3. **Create release notes:**
@@ -363,7 +363,7 @@ Once the installer is built and tested:
 
 **Signing command** (when certificate available):
 ```batch
-signtool sign /f "certificate.pfx" /p "password" /t http://timestamp.digicert.com installer\output\LMU_Telemetry_Logger_Setup_v1.0.0.exe
+signtool sign /f "certificate.pfx" /p "password" /t http://timestamp.digicert.com installer\output\1Lap_Setup_v1.0.0.exe
 ```
 
 ## Version History

@@ -1,6 +1,6 @@
 @echo off
 echo ============================================================
-echo Building LMU Telemetry Logger Executable
+echo Building 1Lap Executable
 echo ============================================================
 echo.
 
@@ -16,7 +16,7 @@ REM Build main executable
 echo.
 echo Building with PyInstaller...
 python -m PyInstaller --onedir --noconsole ^
-    --name "LMU_Telemetry_Logger" ^
+    --name "1Lap" ^
     --icon=NONE ^
     --add-data "src;src" ^
     --hidden-import psutil ^
@@ -37,14 +37,14 @@ pyinstaller --onefile --noconsole ^
 REM Copy updater.exe to main app directory
 echo.
 echo Copying updater.exe to main app directory...
-copy /Y dist\updater.exe dist\LMU_Telemetry_Logger\updater.exe
+copy /Y dist\updater.exe dist\1Lap\updater.exe
 
 echo.
 echo ============================================================
 echo Build Complete!
 echo.
-echo Executable location: dist\LMU_Telemetry_Logger\LMU_Telemetry_Logger.exe
-echo Updater location:    dist\LMU_Telemetry_Logger\updater.exe
+echo Executable location: dist\1Lap\1Lap.exe
+echo Updater location:    dist\1Lap\updater.exe
 echo.
 echo The executable is in a directory bundle with all dependencies.
 echo To distribute, use the installer: run build_installer.bat

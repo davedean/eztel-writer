@@ -93,9 +93,9 @@ class TrayUI:
         )
 
         self.icon = pystray.Icon(
-            'lmu_telemetry',
+            '1lap',
             self.icons[self.state],
-            'LMU Telemetry Logger',
+            '1Lap',
             menu=menu
         )
 
@@ -133,19 +133,19 @@ class TrayUI:
             Status text string
         """
         if self.state == SessionState.IDLE:
-            return 'LMU Telemetry Logger - Idle (Waiting for LMU)'
+            return '1Lap - Idle (Waiting for LMU)'
         elif self.state == SessionState.DETECTED:
-            return 'LMU Telemetry Logger - Detected (LMU running)'
+            return '1Lap - Detected (LMU running)'
         elif self.state == SessionState.LOGGING:
             lap = self.app.telemetry_loop.session_manager.current_lap
             samples = len(self.app.telemetry_loop.session_manager.lap_samples)
-            return f'LMU Telemetry Logger - Logging Lap {lap} ({samples} samples)'
+            return f'1Lap - Logging Lap {lap} ({samples} samples)'
         elif self.state == SessionState.PAUSED:
-            return 'LMU Telemetry Logger - Paused'
+            return '1Lap - Paused'
         elif self.state == SessionState.ERROR:
-            return 'LMU Telemetry Logger - Error'
+            return '1Lap - Error'
         else:
-            return 'LMU Telemetry Logger'
+            return '1Lap'
 
     def on_start_stop(self):
         """Handle Start/Stop menu click"""

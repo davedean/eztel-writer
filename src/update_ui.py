@@ -240,7 +240,7 @@ class UpdateNotification:
                 if hasattr(self.tray_icon, 'notify'):
                     self.tray_icon.notify(
                         title="Update Available",
-                        message=f"LMU Telemetry Logger {version} is now available!"
+                        message=f"1Lap {version} is now available!"
                     )
                 else:
                     logger.debug("Tray icon doesn't support notifications")

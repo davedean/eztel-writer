@@ -1,4 +1,4 @@
-# LMU Telemetry Logger - Claude Instructions
+# 1Lap - Claude Instructions
 
 ## Project Overview
 
@@ -189,10 +189,10 @@ pytest --cov=src --cov-report=html
 
 Completed:
 - [x] PyInstaller build script (`build.bat`)
-- [x] Executable created (`LMU_Telemetry_Logger_v1.0/LMU_Telemetry_Logger.exe`)
+- [x] Executable created (`1Lap_v1.0/1Lap.exe`)
 - [x] User documentation (`USER_GUIDE.md`)
 - [x] Windows installer implementation ✅ **NEW** (2025-11-20)
-  - [x] Inno Setup installer script (`installer/LMU_Telemetry_Logger_Setup.iss`)
+  - [x] Inno Setup installer script (`installer/1Lap_Setup.iss`)
   - [x] Build automation script (`build_installer.bat`)
   - [x] Default configuration template (`installer/config_default.json`)
   - [x] Installer documentation (`installer/README.md`)

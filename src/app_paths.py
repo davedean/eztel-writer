@@ -6,9 +6,9 @@ Provides utilities for determining appropriate directories for:
 - Cache/temporary files
 
 Follows platform conventions:
-- Windows: %LOCALAPPDATA%\LMU Telemetry Logger\
-- macOS: ~/Library/Application Support/LMU Telemetry Logger/
-- Linux: ~/.local/share/lmu-telemetry-logger/
+- Windows: %LOCALAPPDATA%\1Lap\
+- macOS: ~/Library/Application Support/1Lap/
+- Linux: ~/.local/share/1lap/
 """
 
 import os
@@ -24,11 +24,11 @@ def get_app_data_dir() -> Path:
         Path to application data directory (created if doesn't exist)
 
     Examples:
-        - Windows: C:\\Users\\username\\AppData\\Local\\LMU Telemetry Logger\\
-        - macOS: ~/Library/Application Support/LMU Telemetry Logger/
-        - Linux: ~/.local/share/lmu-telemetry-logger/
+        - Windows: C:\\Users\\username\\AppData\\Local\\1Lap\\
+        - macOS: ~/Library/Application Support/1Lap/
+        - Linux: ~/.local/share/1lap/
     """
-    app_name = "LMU Telemetry Logger"
+    app_name = "1Lap"
 
     if sys.platform == 'win32':
         # Windows: Use LOCALAPPDATA
@@ -49,8 +49,8 @@ def get_app_data_dir() -> Path:
             base = Path(xdg_data)
         else:
             base = Path.home() / '.local' / 'share'
-        # Use lowercase with hyphens for Linux (convention)
-        app_dir = base / 'lmu-telemetry-logger'
+        # Use lowercase for Linux (convention)
+        app_dir = base / '1lap'
 
     # Create directory if it doesn't exist
     app_dir.mkdir(parents=True, exist_ok=True)
