@@ -1,7 +1,0 @@
-{
-  "output_dir": "C:\\Users\\%USERNAME%\\Documents\\LMU Telemetry",
-  "target_process": "Le Mans Ultimate",
-  "poll_interval": 0.01,
-  "track_opponents": true,
-  "track_opponent_ai": false
-}
